@@ -1,0 +1,53 @@
+package lukeperkin.craftingtableii;
+
+import net.minecraft.src.EntityPlayer;
+import net.minecraft.src.InventoryPlayer;
+import net.minecraft.src.ModLoader;
+import net.minecraft.src.NetworkManager;
+import net.minecraft.src.Packet;
+import net.minecraft.src.World;
+import net.minecraft.src.forge.MinecraftForgeClient;
+
+public class Proxy {
+	//Client Side
+	public static void Init()
+	{
+		// Setup block render.
+		RenderCraftingTableII render = new RenderCraftingTableII();
+		ModLoader.registerTileEntity(lukeperkin.craftingtableii.TileEntityCraftingTableII.class, "craftingtableII", render);
+	}
+	public static void TextSetup(String path)
+	{
+		MinecraftForgeClient.preloadTexture(path);
+	}
+	public static void SendMsg(String Text)
+	{
+		ModLoader.getMinecraftInstance().ingameGUI.addChatMessage(Text);
+	}
+	public static Object getGui(EntityPlayer player, World world) {
+		return new GuiClevercraft(player, world);
+	}
+	public static boolean IsClient() {
+		return true;
+	}
+	public static EntityPlayer getPlayer(NetworkManager network) {
+		return null;
+	}
+	public static void SendPacket(Packet packet)
+	{
+		ModLoader.sendPacket(packet);
+	}
+	public static boolean isMutiplayer() {
+		return ModLoader.getMinecraftInstance().theWorld.isRemote;
+	}
+	public static void SendPacketTo(EntityPlayer thePlayer, Packet sendUpdatePacket) {
+
+	}
+	public static void HandleUpdateItems() {
+		if (ModLoader.getMinecraftInstance().currentScreen instanceof GuiClevercraft)
+		{
+			((GuiClevercraft)ModLoader.getMinecraftInstance().currentScreen).updateContainer();
+		}
+	}
+
+}
