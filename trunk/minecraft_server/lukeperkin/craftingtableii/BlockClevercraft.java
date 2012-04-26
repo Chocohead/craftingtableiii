@@ -13,7 +13,7 @@ import net.minecraft.src.forge.ITextureProvider;
 public class BlockClevercraft extends BlockContainer implements ITextureProvider {
 	
 	private int toptexture;
-	private String texturePath = "/blockimage/crafttableii_terrain.png";
+	
 	
 	public BlockClevercraft(int i)
 	{
@@ -22,12 +22,11 @@ public class BlockClevercraft extends BlockContainer implements ITextureProvider
 		this.blockIndexInTexture = 0;
 		setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1F, 1.0F);
 		setLightOpacity(0);
-		Proxy.TextSetup(texturePath);
 	}
-	
+	@Override
 	public String getTextureFile()
     {
-        return texturePath;
+        return mod_CraftingTableIII.texturePath;
     }
 	
 	public int getBlockTextureFromSideAndMetadata(int i, int j)
