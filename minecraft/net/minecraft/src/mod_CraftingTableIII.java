@@ -98,7 +98,8 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 		blockCraftingTableIII = new BlockClevercraft(blockIDCraftingTableIII);
 	}
 	
-	public void RenderInvBlock(RenderBlocks renderblocks, Block block, int i, int j)
+	@Override
+	public void renderInvBlock(RenderBlocks renderblocks, Block block, int i, int j)
     {
 		if(block.getRenderType() == craftingTableModelID) {
 			Tessellator tessellator = Tessellator.instance;
@@ -156,7 +157,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 
 	@Override
 	public String getVersion() {
-		return "(Beta1.0, MC1.2.5)";
+		return "(Beta1.1, MC1.2.5)";
 	}
 
 

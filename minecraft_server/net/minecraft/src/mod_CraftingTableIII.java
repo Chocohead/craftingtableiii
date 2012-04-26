@@ -18,6 +18,7 @@ import net.minecraft.src.forge.MessageManager;
 import net.minecraft.src.forge.MinecraftForge;
 import net.minecraft.src.forge.NetworkMod;
 
+
 public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, IConnectionHandler, IPacketHandler {
 	
 	@MLProp public static int blockIDCraftingTableIII = 126; 
@@ -39,8 +40,10 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	
 	public static Configuration config;
 	
+	public static String texturePath = "/blockimage/crafttableii_terrain.png";
+	
 	public mod_CraftingTableIII() {
-		
+		Proxy.TextSetup(texturePath);
 		config = new Configuration(new File("config", "/CraftingTableIII.cfg"));
 	    config.load();
 
@@ -94,6 +97,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 		blockCraftingTableIII = new BlockClevercraft(blockIDCraftingTableIII);
 	}
 	
+	
 	public static void addLastRecipeCrafted(IRecipe recipe) {
 		//Check if recipe is already in list.
 		for(int i = 0; i < 8; i++) {
@@ -118,7 +122,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 
 	@Override
 	public String getVersion() {
-		return "(Beta1.0, MC1.2.5)";
+		return "(Beta1.1, MC1.2.5)";
 	}
 
 
@@ -136,7 +140,6 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 
 	@Override
 	public void load() {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -144,8 +147,8 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	public void onPacketData(NetworkManager network, String channel, byte[] data) {
 		DataInputStream dataStream = new DataInputStream(new ByteArrayInputStream(data));
 		try {
-			
 			int PacketID = dataStream.readInt();
+			System.out.println("PacketID: " + PacketID);
 			if (PacketID == kPacketTypeSingleCraftingRequest && !Proxy.IsClient())
 			{
 				ItemStack toMake = new ItemStack(dataStream.readInt(), dataStream.readInt(), dataStream.readInt());
