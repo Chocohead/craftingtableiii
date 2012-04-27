@@ -65,9 +65,9 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 		ModLoader.addShapelessRecipe(new ItemStack(blockCraftingTableIII, 1), new Object[]{
 			Block.workbench, Item.book
 		});
-		ModLoader.addShapelessRecipe(new ItemStack(blockCraftingTableIII, 1), new Object[]{
-			Block.dirt
-		});
+		//ModLoader.addShapelessRecipe(new ItemStack(blockCraftingTableIII, 1), new Object[]{
+		//	Block.dirt
+		//});
 		
 		Proxy.Init();
 
