@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import net.minecraft.src.CraftingManager;
 import net.minecraft.src.IRecipe;
 import net.minecraft.src.InventoryPlayer;
+import net.minecraft.src.Item;
+import net.minecraft.src.ItemBucket;
 import net.minecraft.src.ItemStack;
 
 public class Zeldo {
@@ -61,10 +63,15 @@ public class Zeldo {
 			Blacklist.add(itemstack.itemID + "@" + itemstack.getItemDamage());
 			int slotindex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, itemstack);
 			//System.out.println("Check: " + itemstack.getItemNameandInformation().get(0));
+			
 			if(slotindex != -1) {
 				//System.out.println(itemstack.getItemNameandInformation().get(0) + ": " + ThePlayer.getStackInSlot(slotindex).stackSize + " - " + itemstack.stackSize);
 				ThePlayer.decrStackSize(slotindex, itemstack.stackSize);
-			
+				if (itemstack.getItem() instanceof ItemBucket)
+				{
+					ThePlayer.addItemStackToInventory(new ItemStack(Item.bucketEmpty));
+					SlotCount += 1;
+				}
 			} else {
 				Object[] CanCraft = canPlayerCraft(ThePlayer, getCraftingRecipe(itemstack, Blacklist), Blacklist, Level+1);
 				ThePlayer = (InventoryPlayer) CanCraft[1];
@@ -75,10 +82,12 @@ public class Zeldo {
 					break;
 				}
 				SlotCount += ((Integer) CanCraft[2]) + 1;
+				
 				slotindex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, itemstack);
 				if(slotindex != -1) {
 					//System.out.println(itemstack.getItemNameandInformation().get(0) + ": " + ThePlayer.getStackInSlot(slotindex).stackSize + " - " + itemstack.stackSize);
 					ThePlayer.decrStackSize(slotindex, itemstack.stackSize);
+					
 				} else {
 					System.out.println("CraftingTableIII: There was an error! Error code 231");
 				}
