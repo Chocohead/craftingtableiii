@@ -216,6 +216,7 @@ public class ContainerClevercraft extends Container {
 			} else if(shiftIsDown) {
 				onRequestMaximumRecipeOutput( (SlotClevercraft)inventorySlots.get(slotIndex) );
 				populateSlotsWithRecipes();
+				updateVisibleSlots( 0.0F );
 				return null;
 			} else {
 				if( !onRequestSingleRecipeOutput( (SlotClevercraft)inventorySlots.get(slotIndex) ) )
@@ -227,10 +228,12 @@ public class ContainerClevercraft extends Container {
 		
 		if(shiftIsDown) {
 			populateSlotsWithRecipes();
+			updateVisibleSlots( 0.0F );
 			return null;
 		} else {
 			ItemStack itemstack = super.slotClick(slotIndex, mouseButton, shiftIsDown, entityplayer);
 			populateSlotsWithRecipes();
+			updateVisibleSlots( 0.0F );
 			return itemstack;
 		}
     }

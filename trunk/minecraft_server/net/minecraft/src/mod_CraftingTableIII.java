@@ -18,7 +18,6 @@ import net.minecraft.src.forge.MessageManager;
 import net.minecraft.src.forge.MinecraftForge;
 import net.minecraft.src.forge.NetworkMod;
 
-
 public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, IConnectionHandler, IPacketHandler {
 	
 	@MLProp public static int blockIDCraftingTableIII = 126; 
