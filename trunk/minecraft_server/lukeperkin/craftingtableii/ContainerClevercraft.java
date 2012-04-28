@@ -2,6 +2,7 @@ package lukeperkin.craftingtableii;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -87,12 +88,14 @@ public class ContainerClevercraft extends Container {
 	}
 	public void populateSlotsWithRecipes()
 	{
+		//Zeldo.InitRecipes();
+		long StartTime = new Date().getTime();
 		craftableRecipes.clearRecipes();
 		recipeList = Collections.unmodifiableList(recipeList);
 		InventoryPlayer Temp = new InventoryPlayer( thePlayer );
 		for(int i = 0; i < recipeList.size(); i++) {//recipeList.size()
 			Temp.copyInventory(thePlayer.inventory);
-			if ((Boolean)Zeldo.canPlayerCraft(Temp, (IRecipe)recipeList.get(i), new ArrayList(), 0)[0])
+			if ((Boolean)Zeldo.canPlayerCraft(Temp, (IRecipe)recipeList.get(i))[0])
 			{
 				craftableRecipes.addRecipe((IRecipe)recipeList.get(i));
 			}
@@ -101,6 +104,7 @@ public class ContainerClevercraft extends Container {
 		{
 			Proxy.SendPacketTo(thePlayer, mod_CraftingTableIII.getInstance().SendUpdatePacket());
 		}
+		//System.out.println("Calculation Time: " + (new Date().getTime() - StartTime));
 	}
 	
 	
@@ -260,7 +264,7 @@ public class ContainerClevercraft extends Container {
 		
 		InventoryPlayer Temp = new InventoryPlayer( thePlayer );
 		Temp.copyInventory(thePlayer.inventory);
-		int ReqSlots = 	(Integer) Zeldo.canPlayerCraft(Temp, irecipe, new ArrayList(), 0)[2] + 1;
+		int ReqSlots = 	(Integer) Zeldo.canPlayerCraft(Temp, irecipe)[2] + 1;
 		int FreeSlots = 0;
 		
 		InventoryPlayer inventoryPlayer = thePlayer.inventory;
@@ -272,7 +276,7 @@ public class ContainerClevercraft extends Container {
 		//ModLoader.getMinecraftInstance().ingameGUI.addChatMessage("Free: " + FreeSlots + " - Req: " + ReqSlots);
 		if (FreeSlots >= ReqSlots)
 		{
-			Zeldo.canPlayerCraft(inventoryPlayer, irecipe, new ArrayList(), 0);
+			Zeldo.canPlayerCraft(inventoryPlayer, irecipe, new ArrayList(), 0, true);
 		} else {
 			Proxy.SendMsg("CT: You need " + (ReqSlots - FreeSlots) + " more empty slots!");
 		}
@@ -302,7 +306,7 @@ public class ContainerClevercraft extends Container {
 		
 		InventoryPlayer Temp = new InventoryPlayer( thePlayer );
 		Temp.copyInventory(thePlayer.inventory);
-		int ReqSlots = 	(Integer) Zeldo.canPlayerCraft(Temp, irecipe, new ArrayList(), 0)[2] + 1;
+		int ReqSlots = 	(Integer) Zeldo.canPlayerCraft(Temp, irecipe)[2] + 1;
 		int FreeSlots = 0;
 		
 		InventoryPlayer inventoryPlayer = thePlayer.inventory;
@@ -321,9 +325,9 @@ public class ContainerClevercraft extends Container {
 			}
 			if (FreeSlots >= ReqSlots) {
 				Temp.copyInventory(thePlayer.inventory);
-				if ((Boolean)Zeldo.canPlayerCraft(Temp, irecipe, new ArrayList(), 0)[0])
+				if ((Boolean)Zeldo.canPlayerCraft(Temp, irecipe)[0])
 				{
-					Zeldo.canPlayerCraft(inventoryPlayer, irecipe, new ArrayList(), 0);
+					Zeldo.canPlayerCraft(inventoryPlayer, irecipe, new ArrayList(), 0, true);
 				} else {
 					break;
 				}

@@ -5,11 +5,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import lukeperkin.craftingtableii.BlockClevercraft;
 import lukeperkin.craftingtableii.ContainerClevercraft;
+import lukeperkin.craftingtableii.ItemDetail;
 import lukeperkin.craftingtableii.Proxy;
 import lukeperkin.craftingtableii.Zeldo;
+import net.minecraft.client.Minecraft;
 import net.minecraft.src.forge.Configuration;
 import net.minecraft.src.forge.IConnectionHandler;
 import net.minecraft.src.forge.IGuiHandler;
@@ -45,7 +49,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	
 	public mod_CraftingTableIII() {
 		Proxy.TextSetup(texturePath);
-		config = new Configuration(new File("config", "/CraftingTableIII.cfg"));
+		config = new Configuration(new File(new File(Proxy.getMcDir(), "/config/"), "CraftingTableIII.cfg"));
 	    config.load();
 
 	    this.blockIDCraftingTableIII = Integer.parseInt(config.getOrCreateIntProperty("blockIDCraftingTableIII", "block", blockIDCraftingTableIII).value);
@@ -73,6 +77,11 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 
 		MinecraftForge.setGuiHandler(this, this);
 		MinecraftForge.registerConnectionHandler(this);
+		
+		List<ItemDetail> Temp = new ArrayList<ItemDetail>();
+		Temp.add(new ItemDetail(100, 45, 1));
+		System.out.println("Test: " + (Temp.contains(new ItemDetail(100, 45, 1))));
+		
 	}
 	
 	public static mod_CraftingTableIII getInstance()
@@ -157,7 +166,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 
 	@Override
 	public String getVersion() {
-		return "(Beta1.1, MC1.2.5)";
+		return "(Beta1.2, MC1.2.5)";
 	}
 
 
