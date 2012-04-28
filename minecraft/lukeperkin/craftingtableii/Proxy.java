@@ -1,5 +1,8 @@
 package lukeperkin.craftingtableii;
 
+import java.io.File;
+
+import net.minecraft.client.Minecraft;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.InventoryPlayer;
 import net.minecraft.src.ModLoader;
@@ -48,6 +51,10 @@ public class Proxy {
 		{
 			((GuiClevercraft)ModLoader.getMinecraftInstance().currentScreen).updateContainer();
 		}
+	}
+	public static File getMcDir()
+	{
+		return Minecraft.getMinecraftDir();
 	}
 
 }

@@ -1,5 +1,7 @@
 package lukeperkin.craftingtableii;
 
+import java.io.File;
+
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.InventoryPlayer;
 import net.minecraft.src.ModLoader;
@@ -47,4 +49,8 @@ public class Proxy {
 	public static void HandleUpdateItems() {
 
 	}
+	public static File getMcDir()
+	  {
+	    return new File(".");
+	  }
 }
