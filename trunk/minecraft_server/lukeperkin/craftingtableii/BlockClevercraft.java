@@ -64,7 +64,7 @@ public class BlockClevercraft extends BlockContainer implements ITextureProvider
     {
 		int i1 = MathHelper.floor_double((double)((entityliving.rotationYaw * 4F) / 360F) + 0.5D) & 3;
 		world.setBlockMetadata(i, j, k, i1);
-		System.out.println(i1);
+		//System.out.println(i1);
     }
 	
 	public TileEntity getBlockEntity() {

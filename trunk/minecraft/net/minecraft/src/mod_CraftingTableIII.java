@@ -47,12 +47,17 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	
 	public static String texturePath = "/blockimage/crafttableii_terrain.png";
 	
+	public static boolean EnableSound = true;
+	public static boolean EnableDoor = true;
+	
 	public mod_CraftingTableIII() {
 		Proxy.TextSetup(texturePath);
+		
 		config = new Configuration(new File(new File(Proxy.getMcDir(), "/config/"), "CraftingTableIII.cfg"));
 	    config.load();
-
 	    this.blockIDCraftingTableIII = Integer.parseInt(config.getOrCreateIntProperty("blockIDCraftingTableIII", "block", blockIDCraftingTableIII).value);
+	    this.EnableSound = Boolean.parseBoolean(config.getOrCreateBooleanProperty("enableSound", "general", true).value);
+	    this.EnableDoor = Boolean.parseBoolean(config.getOrCreateBooleanProperty("enableDoor", "general", true).value);
 	    config.save();
 	    
 	    
@@ -166,7 +171,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 
 	@Override
 	public String getVersion() {
-		return "(Beta1.2, MC1.2.5)";
+		return "(Beta1.3, MC1.2.5)";
 	}
 
 
