@@ -36,14 +36,15 @@ public class GuiClevercraft extends GuiContainer {
 	public void initGui()
     {
 		super.initGui();
-    	controlList.clear();
+    	//controlList.clear();
 
     }
 	
 	@Override
 	protected void handleMouseClick(Slot slot, int i, int j, boolean flag)
     {
-        inventorySlots.slotClick(i, j, flag, mc.thePlayer);
+		super.handleMouseClick(slot, i, j, flag);
+        //inventorySlots.slotClick(i, j, flag, mc.thePlayer);
     }
 
 	
