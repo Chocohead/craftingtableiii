@@ -1,6 +1,7 @@
 package lukeperkin.craftingtableii;
 
 import net.minecraft.src.BlockContainer;
+import net.minecraft.src.EntityItem;
 import net.minecraft.src.EntityLiving;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.Material;
@@ -58,6 +59,19 @@ public class BlockClevercraft extends BlockContainer implements ITextureProvider
     {
     	entityplayer.openGui(mod_CraftingTableIII.getInstance(), mod_CraftingTableIII.guiIDCraftingTableIII, world, i, j, k);
     	return true;
+    }
+    public void onBlockRemoval(World par1World, int par2, int par3, int par4) {
+    	TileEntityCraftingTableII theTile = (TileEntityCraftingTableII) par1World.getBlockTileEntity(par2, par3, par4);
+    	for (int i=0; i < theTile.getSizeInventory()-1; i++)
+		{
+			if (theTile.getStackInSlot(i) != null)
+			{
+				EntityItem theItem = new EntityItem(par1World, par2, par3, par4, theTile.getStackInSlot(i));
+				par1World.spawnEntityInWorld(theItem);
+			}
+				
+		}
+    	super.onBlockRemoval(par1World, par2, par3, par4);
     }
 	
 	public void onBlockPlacedBy(World world, int i, int j, int k, EntityLiving entityliving)

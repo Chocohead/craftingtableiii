@@ -2,8 +2,8 @@ package lukeperkin.craftingtableii;
 
 import java.util.ArrayList;
 
-import net.minecraft.src.Container;
 import net.minecraft.src.CraftingManager;
+import net.minecraft.src.IInventory;
 import net.minecraft.src.IRecipe;
 import net.minecraft.src.InventoryCrafting;
 import net.minecraft.src.InventoryPlayer;
@@ -14,9 +14,9 @@ import net.minecraft.src.ModLoader;
 import net.minecraft.src.forge.ForgeHooks;
 
 public class Zeldo {
-	public static int MaxLevel = 3;
+	public static int MaxLevel = 10;
 	public static ArrayList ValidRecipes;
-	public static ArrayList ValidOutput; 
+	public static ArrayList<ItemDetail> ValidOutput; 
 	public static boolean RecipesInit = false;
 	public static IRecipe getCraftingRecipe(ItemStack item)
 	{
@@ -44,95 +44,107 @@ public class Zeldo {
 		return i1.itemID == i2.itemID && (i1.getItemDamage() == i2.getItemDamage() || i1.getItemDamage() == -1 || i2.getItemDamage() == -1);
 	}
 	
-	public static Object[] canPlayerCraft(InventoryPlayer ThePlayer, IRecipe TheItem)
+	public static Object[] canPlayerCraft(InventoryPlayer ThePlayer, ItemDetail TheItem, IInventory Internal)
 	{
-		return canPlayerCraft(ThePlayer, TheItem, new ArrayList(), 0, false);
+		return canPlayerCraft(ThePlayer, ((TileEntityCraftingTableII)Internal).getCopy(), TheItem, 0, false, null, null);
 	}
-	public static Object[] canPlayerCraft(InventoryPlayer ThePlayer, IRecipe TheItem, ArrayList Blacklist, int Level, boolean UpdateWorld)
+	public static Object[] canPlayerCraft(InventoryPlayer ThePlayer, IInventory Internal, ItemDetail TheItem, int Level, boolean UpdateWorld, ItemDetail Item1, ItemDetail Item2)
 	{
+		//ArrayList<ItemDetail> recipeIngredients = ContainerClevercraft.getRecipeIngredients(TheItem);
 		int SlotCount = 0;
-		ItemStack[] recipeIngredients = ContainerClevercraft.getRecipeIngredients(TheItem);
+		InventoryPlayer ThePlayerBefore = new InventoryPlayer(ThePlayer.player);
+		ThePlayerBefore.copyInventory(ThePlayer);
+		int recipeIndex = ContainerClevercraft.getRecipeIngredients(TheItem);
+		if (recipeIndex == -1)
+			return new Object[] {false, ThePlayer, SlotCount, Internal};
+		ArrayList<ItemDetail> recipeIngredients = (ArrayList<ItemDetail>) Zeldo.ValidRecipes.get(recipeIndex);
+		
+		
+		
+		
+		
 		if (Level > MaxLevel)
-			return new Object[] {false, ThePlayer, SlotCount};
-		if(recipeIngredients == null)
-			return new Object[] {false, ThePlayer, SlotCount}; //This item isnt craftable and they must have it or else its a no go
-		boolean playerHasAllIngredients = true;
-		for(int i1 = 0; i1 < recipeIngredients.length; i1++) {
-			if (Level == 0)
-				Blacklist = new ArrayList();
-			if(recipeIngredients[i1] == null)
+			return new Object[] {false, ThePlayer, SlotCount, Internal};
+		
+		boolean playerHasAllItems = true;
+		for (int i=0; i<recipeIngredients.size(); i++)
+		{
+			if (recipeIngredients.get(i) == null)
 				continue;
-			
-			ItemStack itemstack = recipeIngredients[i1].copy();
-			itemstack.stackSize = 1;
-			if (itemstack.itemID == 17)
-				itemstack.setItemDamage(-1);
-			Blacklist.add(itemstack.itemID + "@" + itemstack.getItemDamage());
-			int slotindex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, itemstack);
-			//System.out.println("Check: " + itemstack.getItemNameandInformation().get(0));
-			
-			if(slotindex != -1) {
-				//System.out.println(itemstack.getItemNameandInformation().get(0) + ": " + ThePlayer.getStackInSlot(slotindex).stackSize + " - " + itemstack.stackSize);
-				ThePlayer.decrStackSize(slotindex, itemstack.stackSize);
-				if (itemstack.getItem() instanceof ItemBucket)
-				{
-					ThePlayer.addItemStackToInventory(new ItemStack(Item.bucketEmpty));
-					SlotCount += 1;
-				}
+			if (recipeIngredients.get(i).equalsForceIgnore(Item2))
+				return new Object[] {false, ThePlayerBefore, SlotCount, Internal}; //Look into this effecting player in some recipes
+			int SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
+			System.out.println("Slot: " + SlotIndex);
+			if (SlotIndex > -1)
+			{
+				DecItemStackPlayer(ThePlayer, Internal, SlotIndex, recipeIngredients.get(i).StackSize, UpdateWorld); //ThePlayer.decrStackSize(SlotIndex, recipeIngredients.get(i).StackSize);
 			} else {
-				Object[] CanCraft = canPlayerCraft(ThePlayer, getCraftingRecipe(itemstack, Blacklist), Blacklist, Level+1, UpdateWorld);
-				ThePlayer = (InventoryPlayer) CanCraft[1];
-				//System.out.println("Check2: " + itemstack.getItemNameandInformation().get(0) + " - " + (Boolean)CanCraft[0]);
-				if (!(Boolean)CanCraft[0])
+				Object[] Result = canPlayerCraft(ThePlayer, Internal, recipeIngredients.get(i), Level+1, UpdateWorld, recipeIngredients.get(i), TheItem);
+				ThePlayer = (InventoryPlayer) Result[1];
+				Internal = (IInventory) Result[3];
+				if ((Boolean)Result[0] != true)
 				{
-					playerHasAllIngredients = false;
+					playerHasAllItems = false;
 					break;
 				}
-				SlotCount += ((Integer) CanCraft[2]) + 1;
-				
-				slotindex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, itemstack);
-				if(slotindex != -1) {
-					//System.out.println(itemstack.getItemNameandInformation().get(0) + ": " + ThePlayer.getStackInSlot(slotindex).stackSize + " - " + itemstack.stackSize);
-					ThePlayer.decrStackSize(slotindex, itemstack.stackSize);
-					
-				} else {
-					//System.out.println("CraftingTableIII: There was an error! Error code 231");
-					//return new Object[] {false, ThePlayer, SlotCount};
+				SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
+				System.out.println("Slot2: " + SlotIndex);
+				if(SlotIndex != -1) {
+					DecItemStackPlayer(ThePlayer, Internal, SlotIndex, recipeIngredients.get(i).StackSize, UpdateWorld); //ThePlayer.decrStackSize(SlotIndex, recipeIngredients.get(i).StackSize);
 				}
+				
 			}
 		}
-		if (playerHasAllIngredients)
+		
+		if (playerHasAllItems)
 		{
-			ThePlayer.addItemStackToInventory(TheItem.getRecipeOutput().copy());
+			TheItem = Zeldo.ValidOutput.get(recipeIndex); //Fixes damage values and set the proper item stack size
+			if (AddItemStackPlayer(ThePlayer, Internal, TheItem.toItemStack(), UpdateWorld) == false) //ThePlayer.addItemStackToInventory(TheItem.toItemStack());
+			{
+				return new Object[] {false, ThePlayerBefore, SlotCount, Internal}; //Look into this effecting player in some recipes
+			}
 			if (UpdateWorld){
-				InventoryCrafting TempMatrix =GenCraftingMatrix(recipeIngredients); 
-				TheItem.getRecipeOutput().onCrafting(ThePlayer.player.worldObj, ThePlayer.player, 1);
-				ModLoader.takenFromCrafting(ThePlayer.player, TheItem.getRecipeOutput().copy(), TempMatrix);
-				ForgeHooks.onTakenFromCrafting(ThePlayer.player, TheItem.getRecipeOutput().copy(), TempMatrix);
+				InventoryCrafting TempMatrix =GenCraftingMatrix(ContainerClevercraft.getRecipeIngredientsOLD(TheItem.iRecipe)); 
+				TheItem.toItemStack().onCrafting(ThePlayer.player.worldObj, ThePlayer.player, 1);
+				ModLoader.takenFromCrafting(ThePlayer.player, TheItem.toItemStack(), TempMatrix);
+				ForgeHooks.onTakenFromCrafting(ThePlayer.player, TheItem.toItemStack(), TempMatrix);
 				HandleCraftingMaxtrix(TempMatrix, ThePlayer);
 			}
-			
-			//System.out.println("AddItems: " + TheItem.getRecipeOutput().getItemNameandInformation().get(0) + " - " + TheItem.getRecipeOutput().stackSize);
 		}
-		return new Object [] {playerHasAllIngredients, ThePlayer, SlotCount};
+		return new Object[] {playerHasAllItems, ThePlayer, SlotCount, Internal};
+	}
+	public static boolean AddItemStackPlayer(InventoryPlayer a, IInventory Internal, ItemStack b, boolean Update)
+	{
+		if (((TileEntityCraftingTableII)Internal).addItemStackToInventory(b))
+		{
+			return true;
+		} else {
+			return a.addItemStackToInventory(b);
+		}
+		
+	}
+	public static void DecItemStackPlayer(InventoryPlayer a, IInventory Internal, int Slot, int Amount, boolean Update)
+	{
+		if (Slot < 18)
+			Internal.decrStackSize(Slot, Amount);
+		else
+			a.decrStackSize(Slot-18, Amount);
 	}
 	public static void HandleCraftingMaxtrix(InventoryCrafting CraftingMatrix, InventoryPlayer thePlayer)
 	{
 		for (int i=0; i<CraftingMatrix.getSizeInventory(); i++)
 		{
-			if (CraftingMatrix.getStackInSlot(i) != null)
+			ItemStack CurStack = CraftingMatrix.getStackInSlot(i);
+			if (CurStack != null)
 			{
 				CraftingMatrix.decrStackSize(i, 1);
-				if (CraftingMatrix.getStackInSlot(i) != null)
-				{
-					if(CraftingMatrix.getStackInSlot(i).getItem().hasContainerItem())
+				
+					if(CurStack.getItem().hasContainerItem())
 					{
-						ItemStack item2 = new ItemStack(CraftingMatrix.getStackInSlot(i).getItem().getContainerItem());
-						item2.setItemDamage(CraftingMatrix.getStackInSlot(i).getItemDamage());
+						ItemStack item2 = new ItemStack(CurStack.getItem().getContainerItem());
 						CraftingMatrix.setInventorySlotContents(i, item2);
 					}
 					
-				}
 
 			}
 		}
@@ -150,6 +162,7 @@ public class Zeldo {
 		for (int i=0; i<Items.length; i++)
 		{
 			if (Items[i] != null) {
+				Items[i].stackSize = 1;
 				Temp.setInventorySlotContents(i, Items[i]);
 				//System.out.println("Not");
 			}else {
@@ -159,34 +172,54 @@ public class Zeldo {
 		return Temp;
 	}
 	
-	public static int getFirstInventoryPlayerSlotWithItemStack(InventoryPlayer inventory, ItemStack itemstack)
+	public static int getFirstInventoryPlayerSlotWithItemStack(InventoryPlayer inventory, IInventory Internal, ItemStack itemstack)
 	{
-		for(int i = 0; i < inventory.getSizeInventory(); i++) {
-			ItemStack itemstack1 = inventory.getStackInSlot(i);
+		for(int i = 0; i < Internal.getSizeInventory()-1; i++) {
+			ItemStack itemstack1 = Internal.getStackInSlot(i);
 			if(itemstack1 != null && itemstack1.itemID == itemstack.itemID) {
-				if (itemstack1.getItemDamage() == itemstack.getItemDamage() || itemstack.getItemDamage() == -1)
-					return i;
-				if (itemstack1.getItem().getHasSubtypes() == false) //Damageable so ignore
+				if (itemstack1.getItemDamage() == itemstack.getItemDamage() || itemstack.getItemDamage() == -1 || itemstack1.getItem().getHasSubtypes() == false)
 					return i;
 			}
 		}
-		
+		for(int i = 0; i < inventory.getSizeInventory(); i++) {
+			ItemStack itemstack1 = inventory.getStackInSlot(i);
+			if(itemstack1 != null && itemstack1.itemID == itemstack.itemID) {
+				System.out.println("Need: " + itemstack.getItemDamage() + " - Want: " + itemstack1.getItemDamage());
+				if (itemstack1.getItemDamage() == itemstack.getItemDamage() || itemstack.getItemDamage() == -1)
+					return i+18;
+				if (itemstack1.getItem().getHasSubtypes() == false) //Damageable so ignore
+					return i+18;
+			}
+		}
+		//System.out.println("Need: " + itemstack.itemID + "@" + itemstack.getItemDamage());
 		return -1;
 	}
 	public static void InitRecipes() {
 		if (RecipesInit) return;
+		if (Proxy.IsClient() == false)
+			System.out.println("Server Recipe");
 		ValidRecipes = new ArrayList();
+		ValidOutput = new ArrayList();
 		//Get a list of the recipes in my form
 		for(int i = 0; i < CraftingManager.getInstance().getRecipeList().size(); i++) {
-			ItemStack[] recipeIngredients = ContainerClevercraft.getRecipeIngredients((IRecipe)CraftingManager.getInstance().getRecipeList().get(i));
-			ArrayList Temp = new ArrayList();
-			for (int a=0; a<recipeIngredients.length; a++)
-			{
-				Temp.add(new ItemDetail(recipeIngredients[a].itemID, recipeIngredients[a].getItemDamage(), recipeIngredients[a].stackSize));
+			ItemStack[] recipeIngredients = ContainerClevercraft.getRecipeIngredientsOLD((IRecipe)CraftingManager.getInstance().getRecipeList().get(i));
+			if (recipeIngredients != null) {
+				ArrayList Temp = new ArrayList();
+				for (int a=0; a<recipeIngredients.length; a++)
+				{
+					if (recipeIngredients[a] == null)
+						Temp.add(null);
+					else
+					{
+						if (recipeIngredients[a].itemID == 17)
+							recipeIngredients[a].setItemDamage(-1);
+						Temp.add(new ItemDetail(recipeIngredients[a].itemID, recipeIngredients[a].getItemDamage(), 1, (IRecipe)CraftingManager.getInstance().getRecipeList().get(i)));
+					}
+				}
+				ValidRecipes.add(Temp);
+				ItemStack Temp2 = ((IRecipe)CraftingManager.getInstance().getRecipeList().get(i)).getRecipeOutput();
+				ValidOutput.add(new ItemDetail(Temp2.itemID, Temp2.getItemDamage(), Temp2.stackSize, (IRecipe)CraftingManager.getInstance().getRecipeList().get(i), true));
 			}
-			ValidRecipes.add(Temp);
-			ItemStack Temp2 = ((IRecipe)CraftingManager.getInstance().getRecipeList().get(i)).getRecipeOutput();
-			ValidOutput.add(new ItemDetail(Temp2.itemID, Temp2.getItemDamage(), Temp2.stackSize));
 		}
 		
 	}

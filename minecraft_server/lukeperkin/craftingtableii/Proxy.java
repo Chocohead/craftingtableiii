@@ -24,7 +24,7 @@ public class Proxy {
 	{
 
 	}
-	public static Object getGui(EntityPlayer player, World world) {
+	public static Object getGui(EntityPlayer player, TileEntityCraftingTableII tile) {
 		return null;
 	}
 	public static boolean IsClient() {
