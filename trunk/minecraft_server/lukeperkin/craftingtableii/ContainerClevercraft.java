@@ -54,6 +54,13 @@ public class ContainerClevercraft extends Container {
             	addSlot(new SlotClevercraft(thePlayer, inventory, craftMatrix, j3 + l2 * 8, 8 + j3 * 18, 18 + l2 * 18));
             }
         }
+		for(int a = 0; a < 2; a++)
+        {
+        	for(int i = 0; i < 9; i++)
+            {
+                addSlot(new Slot(theTile, i + (a*9), 8 + i * 18, 112 + (18*a)));
+            }
+        }
 
         for(int j = 0; j < 3; j++)
         {
@@ -68,26 +75,20 @@ public class ContainerClevercraft extends Container {
             addSlot(new Slot(inventoryplayer, i3, 8 + i3 * 18, 211));
         }
         
-        for(int a = 0; a < 2; a++)
-        {
-        	for(int i = 0; i < 9; i++)
-            {
-                addSlot(new Slot(theTile, i + (a*9), 8 + i * 18, 112 + (18*a)));
-            }
-        }
+        
         	populateSlotsWithRecipes();
         
         
         if(Proxy.IsClient() && Proxy.isMutiplayer()) {
         	timer = new Timer();
-        	timer.schedule(new RemindTask(), 500);
+        	timer.schedule(new RemindTask(), 2);
         }
 
 	}
 	
 	class RemindTask extends TimerTask {
 	    public void run() {
-	      populateSlotsWithRecipes();
+	    	slotClick(-999, 5, false, null); //Throw a bad click to force it to bring items up
 	    }
 	}
 	
@@ -110,22 +111,14 @@ public class ContainerClevercraft extends Container {
 			{
 				craftableRecipes.addRecipe(((ItemDetail)Zeldo.ValidOutput.get(i)).iRecipe);
 			}
-		}
-		
-//		for(int i = 0; i < recipeList.size(); i++) {//recipeList.size()
-//			Temp.copyInventory(thePlayer.inventory);
-//			if ((Boolean)Zeldo.canPlayerCraft(Temp, (IRecipe)recipeList.get(i))[0])
-//			{
-//				craftableRecipes.addRecipe((IRecipe)recipeList.get(i));
-//			}
-//		}
-		
+		}		
 		
 		if (!Proxy.IsClient())
 		{
-			Proxy.SendPacketTo(thePlayer, mod_CraftingTableIII.getInstance().SendUpdatePacket());
+			//Proxy.SendPacketTo(thePlayer, mod_CraftingTableIII.getInstance().SendUpdatePacket());
 		}
-		System.out.println("Calculation Time: " + (new Date().getTime() - StartTime));
+		if (mod_CraftingTableIII.ShowTimings)
+			System.out.println("Calculation Time: " + (new Date().getTime() - StartTime));
 	}
 	
 	
@@ -378,7 +371,6 @@ public class ContainerClevercraft extends Container {
 	
 	private void onCraftMatrixChanged(ItemStack recipeOutputStack)
 	{
-		System.out.println("?!");
 		InventoryPlayer inventoryPlayer = thePlayer.inventory;
 		// Call custom hooks.
 		ModLoader.takenFromCrafting(thePlayer, recipeOutputStack, craftMatrix);
@@ -418,6 +410,9 @@ public class ContainerClevercraft extends Container {
 	
 	@Override
 	public boolean canInteractWith(EntityPlayer entityplayer) {
+		return true;
+	}
+	public boolean isUsableByPlayer(EntityPlayer entityplayer) {
 		return true;
 	}
 

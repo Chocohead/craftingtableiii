@@ -22,6 +22,7 @@ import net.minecraft.src.forge.IPacketHandler;
 import net.minecraft.src.forge.MessageManager;
 import net.minecraft.src.forge.MinecraftForge;
 import net.minecraft.src.forge.NetworkMod;
+import net.minecraft.src.forge.Property;
 
 import org.lwjgl.opengl.GL11;
 
@@ -34,6 +35,8 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	public static IRecipe[] lastRecipesCrafted;
 	public static int numberOfLastRecipesCrafted;
 	public static int craftingTableModelID;
+	public static int SyncWaitTime = 2; //MS to wait before force syncing
+	public static boolean ShowTimings = false;
 	
 	private static mod_CraftingTableIII clevercraftInstance;
 	private static ContainerClevercraft containerClevercraft;
@@ -59,6 +62,15 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	    this.blockIDCraftingTableIII = Integer.parseInt(config.getOrCreateIntProperty("blockIDCraftingTableIII", "block", blockIDCraftingTableIII).value);
 	    this.EnableSound = Boolean.parseBoolean(config.getOrCreateBooleanProperty("enableSound", "general", true).value);
 	    this.EnableDoor = Boolean.parseBoolean(config.getOrCreateBooleanProperty("enableDoor", "general", true).value);
+	    
+	    Property temp = config.getOrCreateBooleanProperty("ShowTimings", "general", this.ShowTimings);
+	    temp.comment = "Set to true if you are lagging and Zeldo wants your Timings";
+	    this.ShowTimings = Boolean.parseBoolean(temp.value);
+	    
+	    temp = config.getOrCreateIntProperty("SyncWaitTime", "general", this.SyncWaitTime);
+	    temp.comment = "Usually can be left at 2. Only raise if you have to click after opening CT3 on a server. RAISE ONLY BY 1 EVERY TIME";
+	    this.SyncWaitTime = Integer.parseInt(temp.value);
+	    
 	    config.save();
 	    
 	    

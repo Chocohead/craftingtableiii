@@ -74,7 +74,6 @@ public class Zeldo {
 			if (recipeIngredients.get(i).equalsForceIgnore(Item2))
 				return new Object[] {false, ThePlayerBefore, SlotCount, Internal}; //Look into this effecting player in some recipes
 			int SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
-			System.out.println("Slot: " + SlotIndex);
 			if (SlotIndex > -1)
 			{
 				DecItemStackPlayer(ThePlayer, Internal, SlotIndex, recipeIngredients.get(i).StackSize, UpdateWorld); //ThePlayer.decrStackSize(SlotIndex, recipeIngredients.get(i).StackSize);
@@ -88,7 +87,6 @@ public class Zeldo {
 					break;
 				}
 				SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
-				System.out.println("Slot2: " + SlotIndex);
 				if(SlotIndex != -1) {
 					DecItemStackPlayer(ThePlayer, Internal, SlotIndex, recipeIngredients.get(i).StackSize, UpdateWorld); //ThePlayer.decrStackSize(SlotIndex, recipeIngredients.get(i).StackSize);
 				}
@@ -184,7 +182,6 @@ public class Zeldo {
 		for(int i = 0; i < inventory.getSizeInventory(); i++) {
 			ItemStack itemstack1 = inventory.getStackInSlot(i);
 			if(itemstack1 != null && itemstack1.itemID == itemstack.itemID) {
-				System.out.println("Need: " + itemstack.getItemDamage() + " - Want: " + itemstack1.getItemDamage());
 				if (itemstack1.getItemDamage() == itemstack.getItemDamage() || itemstack.getItemDamage() == -1)
 					return i+18;
 				if (itemstack1.getItem().getHasSubtypes() == false) //Damageable so ignore
@@ -196,8 +193,6 @@ public class Zeldo {
 	}
 	public static void InitRecipes() {
 		if (RecipesInit) return;
-		if (Proxy.IsClient() == false)
-			System.out.println("Server Recipe");
 		ValidRecipes = new ArrayList();
 		ValidOutput = new ArrayList();
 		//Get a list of the recipes in my form
