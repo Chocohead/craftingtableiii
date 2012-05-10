@@ -16,14 +16,14 @@ public class GuiClevercraft extends GuiContainer {
     private boolean shouldShowDescriptions;
 
     
-	public GuiClevercraft(EntityPlayer entityplayer, World world)
+	public GuiClevercraft(EntityPlayer entityplayer, TileEntityCraftingTableII tile)
     {
-        super( new ContainerClevercraft(entityplayer.inventory, world) );
+        super( new ContainerClevercraft(entityplayer.inventory, tile) );
         field_35312_g = 0.0F;
         field_35313_h = false;
         allowUserInput = true;
         entityplayer.craftingInventory = inventorySlots;
-        ySize = 208;
+        ySize = 234;
         
         ((ContainerClevercraft)inventorySlots).updateVisibleSlots(0.0F);
     }
@@ -80,30 +80,6 @@ public class GuiClevercraft extends GuiContainer {
             ((ContainerClevercraft)inventorySlots).updateVisibleSlots(field_35312_g);
         }
         super.drawScreen(i, j, f);
-        //----
-        if(shouldShowDescriptions)
-        {
-			GL11.glPushMatrix();
-	        GL11.glTranslatef(guiLeft, guiTop, 0.0F);
-	        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-	        GL11.glEnable(32826 /*GL_RESCALE_NORMAL_EXT*/);
-	        //guiItemDescriptions.drawDescriptionBackground(i, j);
-	        
-        	for(int j2 = 0; j2 < inventorySlots.inventorySlots.size(); j2++)
-            {
-                Slot slot1 = (Slot)inventorySlots.inventorySlots.get(j2);
-                
-                if(slot1.getStack() != null && slot1.getStack().getItem() != null && getIsMouseOverSlot(slot1, i, j))
-            	{
-                	if(slot1 instanceof SlotClevercraft) {
-                		SlotClevercraft slotclever = (SlotClevercraft)slot1;
-                	}
-            	}
-            }
-        	
-        	GL11.glPopMatrix();
-        }
-        //----
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glDisable(2896 /*GL_LIGHTING*/);
     }
@@ -129,11 +105,13 @@ public class GuiClevercraft extends GuiContainer {
         mc.renderEngine.bindTexture(k);
         int l = guiLeft;
         int i1 = guiTop;
+        //Background
         drawTexturedModalRect(l, i1, 0, 0, xSize, ySize);
         int j1 = l + 155;
         int k1 = i1 + 17;
         int l1 = k1 + 88 + 2;
-        drawTexturedModalRect(l + 154, i1 + 17 + (int)((float)(l1 - k1 - 17) * field_35312_g), 0, 208, 16, 16);
+        //Scrolly bar
+        drawTexturedModalRect(l + 154, i1 + 17 + (int)((float)(l1 - k1 - 17) * field_35312_g), 0, 240, 16, 16);
     }
     
     public void handleMouseInput()

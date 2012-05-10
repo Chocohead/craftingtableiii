@@ -27,8 +27,8 @@ public class Proxy {
 	{
 		ModLoader.getMinecraftInstance().ingameGUI.addChatMessage(Text);
 	}
-	public static Object getGui(EntityPlayer player, World world) {
-		return new GuiClevercraft(player, world);
+	public static Object getGui(EntityPlayer player, TileEntityCraftingTableII tile) {
+		return new GuiClevercraft(player, tile);
 	}
 	public static boolean IsClient() {
 		return true;
