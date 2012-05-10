@@ -75,22 +75,19 @@ public class ContainerClevercraft extends Container {
                 addSlot(new Slot(theTile, i + (a*9), 8 + i * 18, 112 + (18*a)));
             }
         }
-        if(Proxy.IsClient() == false || Proxy.isMutiplayer() == false) {
         	populateSlotsWithRecipes();
+        
+        
+        if(Proxy.IsClient() && Proxy.isMutiplayer()) {
+        	timer = new Timer();
+        	timer.schedule(new RemindTask(), 500);
         }
-        
-        
-        //if(worldObj.isRemote) {
-        //	timer = new Timer();
-       // 	timer.schedule(new RemindTask(), 5000);
-        //}
 
 	}
 	
 	class RemindTask extends TimerTask {
 	    public void run() {
 	      populateSlotsWithRecipes();
-	      timer.cancel();
 	    }
 	}
 	
