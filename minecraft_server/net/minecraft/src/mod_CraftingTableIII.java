@@ -118,7 +118,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	{
 		blockCraftingTableIII = new BlockClevercraft(blockIDCraftingTableIII);
 	}
-	
+
 	
 	public static void addLastRecipeCrafted(IRecipe recipe) {
 		//Check if recipe is already in list.
@@ -144,7 +144,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 
 	@Override
 	public String getVersion() {
-		return "(Beta1.3, MC1.2.5)";
+		return "(Beta1.4, MC1.2.5)";
 	}
 
 
@@ -170,20 +170,22 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 		DataInputStream dataStream = new DataInputStream(new ByteArrayInputStream(data));
 		try {
 			int PacketID = dataStream.readInt();
-			System.out.println("PacketID: " + PacketID);
+			//System.out.println("PacketID: " + PacketID);
 			Zeldo.InitRecipes();
 			if (PacketID == kPacketTypeSingleCraftingRequest && !Proxy.IsClient())
 			{
 				ItemStack toMake = new ItemStack(dataStream.readInt(), dataStream.readInt(), dataStream.readInt());
+				int RecipeIndex = dataStream.readInt();
 				IRecipe RecipeToMake = Zeldo.getCraftingRecipe(toMake);
-				ContainerClevercraft.onRequestSingleRecipeOutput(Proxy.getPlayer(network), RecipeToMake, (TileEntityCraftingTableII)(Proxy.getPlayer(network).worldObj).getBlockTileEntity(dataStream.readInt(), dataStream.readInt(), dataStream.readInt()));
+				ContainerClevercraft.onRequestSingleRecipeOutput(Proxy.getPlayer(network), RecipeToMake, (TileEntityCraftingTableII)(Proxy.getPlayer(network).worldObj).getBlockTileEntity(dataStream.readInt(), dataStream.readInt(), dataStream.readInt()), RecipeIndex);
 			}
 			
 			if (PacketID == kPacketTypeMaximumCraftingRequest && !Proxy.IsClient())
 			{
 				ItemStack toMake = new ItemStack(dataStream.readInt(), dataStream.readInt(), dataStream.readInt());
+				int RecipeIndex = dataStream.readInt();
 				IRecipe RecipeToMake = Zeldo.getCraftingRecipe(toMake);
-				ContainerClevercraft.onRequestMaximumRecipeOutput(Proxy.getPlayer(network), RecipeToMake, (TileEntityCraftingTableII)(Proxy.getPlayer(network).worldObj).getBlockTileEntity(dataStream.readInt(), dataStream.readInt(), dataStream.readInt()));
+				ContainerClevercraft.onRequestMaximumRecipeOutput(Proxy.getPlayer(network), RecipeToMake, (TileEntityCraftingTableII)(Proxy.getPlayer(network).worldObj).getBlockTileEntity(dataStream.readInt(), dataStream.readInt(), dataStream.readInt()), RecipeIndex);
 			}
 			if (PacketID == kPacketTypeUpdateItems && Proxy.IsClient())
 			{
@@ -197,7 +199,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
         
 	}
 	
-	public void SendCraftingPacket(ItemStack theItem, boolean Max, int xCoord, int yCoord, int zCoord)
+	public void SendCraftingPacket(ItemStack theItem, boolean Max, int xCoord, int yCoord, int zCoord, int RecipeIndex)
 	{
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		DataOutputStream data = new DataOutputStream(bytes);
@@ -210,6 +212,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 			data.writeInt(theItem.itemID);
 			data.writeInt(theItem.stackSize);
 			data.writeInt(theItem.getItemDamage());
+			data.writeInt(RecipeIndex);
 			data.writeInt(xCoord);
 			data.writeInt(yCoord);
 			data.writeInt(zCoord);

@@ -198,7 +198,6 @@ public class TileEntityCraftingTableII extends TileEntity implements IInventory 
 		{
 			ItemStack tarStack = getStackInSlot(Index);
 			if (tarStack.isStackable())
-				System.out.println((tarStack.getMaxStackSize() - tarStack.stackSize) + "--" + aStack.stackSize);
 				if (tarStack.getMaxStackSize() - tarStack.stackSize >= aStack.stackSize)
 				{
 					tarStack.stackSize += aStack.stackSize;

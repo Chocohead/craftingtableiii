@@ -81,7 +81,7 @@ public class ContainerClevercraft extends Container {
         
         if(Proxy.IsClient() && Proxy.isMutiplayer()) {
         	timer = new Timer();
-        	timer.schedule(new RemindTask(), 2);
+        	timer.schedule(new RemindTask(), mod_CraftingTableIII.SyncWaitTime);
         }
 
 	}
@@ -107,9 +107,10 @@ public class ContainerClevercraft extends Container {
 
 		for(int i = 0; i < Zeldo.ValidOutput.size(); i++) { // Zeldo.ValidOutput.size()
 			Temp.copyInventory(thePlayer.inventory);
-			if ((Boolean)Zeldo.canPlayerCraft(Temp, (ItemDetail)Zeldo.ValidOutput.get(i), theTile)[0])
+			//System.out.println("RecipeCheck: " + i + "/" + Zeldo.ValidOutput.size() + " - " + Zeldo.ValidOutput.get(i).ItemID + "@" + Zeldo.ValidOutput.get(i).ItemDamage);
+			if ((Boolean)Zeldo.canPlayerCraft(Temp, (ItemDetail)Zeldo.ValidOutput.get(i), theTile, i)[0])
 			{
-				craftableRecipes.addRecipe(((ItemDetail)Zeldo.ValidOutput.get(i)).iRecipe);
+				craftableRecipes.addRecipe(((ItemDetail)Zeldo.ValidOutput.get(i)).iRecipe, i);
 			}
 		}		
 		
@@ -140,13 +141,17 @@ public class ContainerClevercraft extends Container {
 		
 		return -1;
 	}
-	
-	// Get a list of ingredient required to craft the recipe item.
-	@SuppressWarnings("unchecked")
 	public static int getRecipeIngredients(ItemDetail theItem)
 	{
-		//System.out.println("getRecipe: " + theItem.ItemID);
-		for (int i=0; i<Zeldo.ValidOutput.size(); i++)
+		return getRecipeIngredients(theItem, 0);
+	}
+	// Get a list of ingredient required to craft the recipe item.
+	public static int getRecipeIngredients(ItemDetail theItem, int offset)
+	{
+		//System.out.println("getRecipe: " + theItem.ItemID + "@" + theItem.ItemDamage);
+		if (Zeldo.ValidOutput.size() <= offset)
+			return -1;
+		for (int i=offset; i<Zeldo.ValidOutput.size(); i++)
 			if (Zeldo.ValidOutput.get(i).equals(theItem))
 			{
 				//System.out.println("getRecipeF: " + i);
@@ -166,6 +171,13 @@ public class ContainerClevercraft extends Container {
 			if(irecipe instanceof ShapedRecipes) {
 				return (ItemStack[])ModLoader.getPrivateValue(ShapedRecipes.class, (ShapedRecipes)irecipe, 2);
 			} else if(irecipe instanceof ShapelessRecipes) {
+				if (irecipe.getRecipeOutput().getItem().getItemName() != null)
+				{
+					if (irecipe.getRecipeOutput().getItem().getItemName().equalsIgnoreCase("tile.rpwire"))
+					{
+						return null;
+					}
+				}
 				ArrayList recipeItems = new ArrayList((List)ModLoader.getPrivateValue(ShapelessRecipes.class, (ShapelessRecipes)irecipe, 1));
 				return (ItemStack[])recipeItems.toArray(new ItemStack[recipeItems.size()]);
 			} else {
@@ -175,6 +187,8 @@ public class ContainerClevercraft extends Container {
 				} else if(className.equals("ic2.common.AdvShapelessRecipe")) {
 					return (ItemStack[]) ModLoader.getPrivateValue((Class)irecipe.getClass(), (Object)irecipe, "input");
 				} else {
+					if (mod_CraftingTableIII.ShowTimings)
+						System.out.println("Invalid Recipe Class: " + className);
 					return null;
 				}
 			}
@@ -202,18 +216,18 @@ public class ContainerClevercraft extends Container {
                 	if(recipeOutput != null) {
                 		inventory.setInventorySlotContents(l + k * 8, recipeOutput);
                     	if(slot instanceof SlotClevercraft) {
-                    		((SlotClevercraft)slot).setIRecipe( craftableRecipes.getIRecipe(i1) );
+                    		((SlotClevercraft)slot).setIRecipe( craftableRecipes.getIRecipe(i1),  craftableRecipes.getListIndex(i1));
                     	}
                 	} else {
                 		inventory.setInventorySlotContents(l + k * 8, null);
                 		if(slot instanceof SlotClevercraft) {
-                    		((SlotClevercraft)slot).setIRecipe(null);
+                    		((SlotClevercraft)slot).setIRecipe(null, -1);
                     	}
                 	}
                 } else {
                 	inventory.setInventorySlotContents(l + k * 8, null);
                 	if(slot instanceof SlotClevercraft) {
-                		((SlotClevercraft)slot).setIRecipe(null);
+                		((SlotClevercraft)slot).setIRecipe(null, -1);
                 	}
                 }
             }
@@ -277,39 +291,25 @@ public class ContainerClevercraft extends Container {
 		if(irecipe == null)
 			return false;
 		
-		return onRequestSingleRecipeOutput(thePlayer, irecipe, theTile);
+		return onRequestSingleRecipeOutput(thePlayer, irecipe, theTile, slot.myIndex);
 	}
 	
-	public static boolean onRequestSingleRecipeOutput(EntityPlayer thePlayer, IRecipe irecipe, TileEntityCraftingTableII Internal )
+	public static boolean onRequestSingleRecipeOutput(EntityPlayer thePlayer, IRecipe irecipe, TileEntityCraftingTableII Internal, int RecipeIndex)
 	{
-		// Get IRecipe from slot.
 		
 		ItemStack recipeOutputStack = irecipe.getRecipeOutput().copy();
-		//this.addFavouriteRecipe(irecipe);
 		
 		if (Proxy.IsClient() && Proxy.isMutiplayer())
 		{
-			mod_CraftingTableIII.getInstance().SendCraftingPacket(irecipe.getRecipeOutput().copy(), false, Internal.xCoord, Internal.yCoord, Internal.zCoord);
+			mod_CraftingTableIII.getInstance().SendCraftingPacket(irecipe.getRecipeOutput().copy(), false, Internal.xCoord, Internal.yCoord, Internal.zCoord, RecipeIndex);
 		}
 		
 		InventoryPlayer Temp = new InventoryPlayer( thePlayer );
 		Temp.copyInventory(thePlayer.inventory);
-		int ReqSlots = 0; //	(Integer) Zeldo.canPlayerCraft(Temp, irecipe)[2] + 1;
-		int FreeSlots = 0;
 		
 		InventoryPlayer inventoryPlayer = thePlayer.inventory;
-		for (int i=0; i<inventoryPlayer.getSizeInventory()-4; i++)
-		{
-			if (inventoryPlayer.getStackInSlot(i) == null)
-				FreeSlots += 1;
-		}
-		//ModLoader.getMinecraftInstance().ingameGUI.addChatMessage("Free: " + FreeSlots + " - Req: " + ReqSlots);
-		if (FreeSlots >= ReqSlots)
-		{
-			Zeldo.canPlayerCraft(inventoryPlayer, Internal, new ItemDetail(irecipe.getRecipeOutput()), 0, true, null, null);
-		} else {
-			Proxy.SendMsg("CT: You need " + (ReqSlots - FreeSlots) + " more empty slots!");
-		}
+
+		Zeldo.canPlayerCraft(inventoryPlayer, Internal, new ItemDetail(irecipe.getRecipeOutput()), 0, true, null, null, RecipeIndex);
 		
 		//onCraftMatrixChanged(recipeOutputStack);
 		return false;
@@ -320,9 +320,9 @@ public class ContainerClevercraft extends Container {
 		if(irecipe == null)
 			return;
 		
-		onRequestMaximumRecipeOutput(thePlayer, irecipe, theTile);
+		onRequestMaximumRecipeOutput(thePlayer, irecipe, theTile, slot.myIndex);
 	}
-	public static void onRequestMaximumRecipeOutput(EntityPlayer thePlayer, IRecipe irecipe, TileEntityCraftingTableII Internal)
+	public static void onRequestMaximumRecipeOutput(EntityPlayer thePlayer, IRecipe irecipe, TileEntityCraftingTableII Internal, int RecipeIndex)
 	{	
 		
 		
@@ -331,13 +331,11 @@ public class ContainerClevercraft extends Container {
 		
 		if (Proxy.IsClient() && Proxy.isMutiplayer())
 		{
-			mod_CraftingTableIII.getInstance().SendCraftingPacket(irecipe.getRecipeOutput().copy(), true, Internal.xCoord, Internal.yCoord, Internal.zCoord);
+			mod_CraftingTableIII.getInstance().SendCraftingPacket(irecipe.getRecipeOutput().copy(), true, Internal.xCoord, Internal.yCoord, Internal.zCoord, RecipeIndex);
 		}
 		
 		InventoryPlayer Temp = new InventoryPlayer( thePlayer );
 		Temp.copyInventory(thePlayer.inventory);
-		int ReqSlots = 0; //	(Integer) Zeldo.canPlayerCraft(Temp, irecipe)[2] + 1;
-		int FreeSlots = 0;
 		
 		InventoryPlayer inventoryPlayer = thePlayer.inventory;
 		int GoTo = 64;
@@ -346,24 +344,13 @@ public class ContainerClevercraft extends Container {
 		}
 		for (int i=0; i<GoTo; i++)
 		{
-			
-			FreeSlots = 0;
-			for (int a=0; a<inventoryPlayer.getSizeInventory()-4; a++)
-			{
-				if (inventoryPlayer.getStackInSlot(a) == null)
-					FreeSlots += 1;
-			}
-			if (FreeSlots >= ReqSlots) {
 				Temp.copyInventory(thePlayer.inventory);
-				if ((Boolean)Zeldo.canPlayerCraft(Temp, new ItemDetail(irecipe.getRecipeOutput()), Internal)[0])
+				if ((Boolean)Zeldo.canPlayerCraft(Temp, new ItemDetail(irecipe.getRecipeOutput()), Internal, RecipeIndex)[0])
 				{
-					Zeldo.canPlayerCraft(inventoryPlayer, Internal, new ItemDetail(irecipe.getRecipeOutput()), 0, true, null, null);
+					Zeldo.canPlayerCraft(inventoryPlayer, Internal, new ItemDetail(irecipe.getRecipeOutput()), 0, true, null, null, RecipeIndex);
 				} else {
 					break;
 				}
-			}
-			
-			
 		}
 		
 		//onCraftMatrixChanged(recipeOutputStack);

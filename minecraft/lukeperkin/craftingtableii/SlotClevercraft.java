@@ -19,7 +19,7 @@ public class SlotClevercraft extends Slot {
 	private EntityPlayer thePlayer;
 	public IInventory craftMatrix;
 	private IRecipe irecipe;
-	
+	public int myIndex;
 	public SlotClevercraft(EntityPlayer entityplayer, IInventory craftableRecipes, IInventory matrix, int i, int j, int k)
     {
         super(craftableRecipes, i, j, k);
@@ -27,9 +27,10 @@ public class SlotClevercraft extends Slot {
         craftMatrix = matrix;
     }
 	
-	public void setIRecipe(IRecipe theIRecipe)
+	public void setIRecipe(IRecipe theIRecipe, int theIndex)
 	{
 		irecipe = theIRecipe;
+		myIndex = theIndex;
 	}
 	
 	public IRecipe getIRecipe()
