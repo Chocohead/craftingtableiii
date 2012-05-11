@@ -7,12 +7,14 @@ import net.minecraft.src.ItemStack;
 public class InventoryCraftingTableII {
 	
 	private IRecipe[] recipes;
+	public int[] listIndex;
 	private int recipesLength;
 	
 	public InventoryCraftingTableII(int i)
     {
 		recipesLength = i;
 		recipes = new IRecipe[recipesLength];
+		listIndex = new int[recipesLength];
     }
 	
 	public int getSize()
@@ -25,19 +27,24 @@ public class InventoryCraftingTableII {
 		return 0;
 	}
 	
-	public boolean addRecipe(IRecipe irecipe)
+	public boolean addRecipe(IRecipe irecipe, int theIndex)
 	{
 		int size = getSize();
 		if(size >= recipesLength || irecipe == null)
 			return false;
 		
 		recipes[size] = irecipe;
+		listIndex[size] = theIndex;
 		return true;
 	}
 	
 	public IRecipe getIRecipe(int i)
 	{
 		return recipes[i];
+	}
+	public int getListIndex(int i)
+	{
+		return listIndex[i];
 	}
 	
 	public ItemStack getRecipeOutput(int i)

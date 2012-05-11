@@ -44,55 +44,88 @@ public class Zeldo {
 		return i1.itemID == i2.itemID && (i1.getItemDamage() == i2.getItemDamage() || i1.getItemDamage() == -1 || i2.getItemDamage() == -1);
 	}
 	
-	public static Object[] canPlayerCraft(InventoryPlayer ThePlayer, ItemDetail TheItem, IInventory Internal)
+	public static Object[] canPlayerCraft(InventoryPlayer ThePlayer, ItemDetail TheItem, IInventory Internal, int ForcedIndex)
 	{
-		return canPlayerCraft(ThePlayer, ((TileEntityCraftingTableII)Internal).getCopy(), TheItem, 0, false, null, null);
+		return canPlayerCraft(ThePlayer, ((TileEntityCraftingTableII)Internal).getCopy(), TheItem, 0, false, null, null, ForcedIndex);
 	}
-	public static Object[] canPlayerCraft(InventoryPlayer ThePlayer, IInventory Internal, ItemDetail TheItem, int Level, boolean UpdateWorld, ItemDetail Item1, ItemDetail Item2)
+	/*
+	 * Only time this is called with -1 is when we 
+	 * are trying to make an item for a request recipe
+	 * 
+	 * Otherwise ForcedIndex should always be a value!
+	 * If not dupe items will show on the table!
+	 */
+	public static Object[] canPlayerCraft(InventoryPlayer ThePlayer, IInventory Internal, ItemDetail TheItem, int Level, boolean UpdateWorld, ItemDetail Item1, ItemDetail Item2, int ForcedIndex)
 	{
 		//ArrayList<ItemDetail> recipeIngredients = ContainerClevercraft.getRecipeIngredients(TheItem);
 		int SlotCount = 0;
-		InventoryPlayer ThePlayerBefore = new InventoryPlayer(ThePlayer.player);
-		ThePlayerBefore.copyInventory(ThePlayer);
-		int recipeIndex = ContainerClevercraft.getRecipeIngredients(TheItem);
-		if (recipeIndex == -1)
-			return new Object[] {false, ThePlayer, SlotCount, Internal};
-		ArrayList<ItemDetail> recipeIngredients = (ArrayList<ItemDetail>) Zeldo.ValidRecipes.get(recipeIndex);
-		
-		
-		
-		
 		
 		if (Level > MaxLevel)
 			return new Object[] {false, ThePlayer, SlotCount, Internal};
+
+		//Copys to prevent bugs
+		InventoryPlayer ThePlayerBefore = new InventoryPlayer(ThePlayer.player);
+		ThePlayerBefore.copyInventory(ThePlayer);
+		TileEntityCraftingTableII InternalBefore = ((TileEntityCraftingTableII)Internal).getCopy();
 		
-		boolean playerHasAllItems = true;
-		for (int i=0; i<recipeIngredients.size(); i++)
-		{
-			if (recipeIngredients.get(i) == null)
-				continue;
-			if (recipeIngredients.get(i).equalsForceIgnore(Item2))
-				return new Object[] {false, ThePlayerBefore, SlotCount, Internal}; //Look into this effecting player in some recipes
-			int SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
-			if (SlotIndex > -1)
-			{
-				DecItemStackPlayer(ThePlayer, Internal, SlotIndex, recipeIngredients.get(i).StackSize, UpdateWorld); //ThePlayer.decrStackSize(SlotIndex, recipeIngredients.get(i).StackSize);
-			} else {
-				Object[] Result = canPlayerCraft(ThePlayer, Internal, recipeIngredients.get(i), Level+1, UpdateWorld, recipeIngredients.get(i), TheItem);
-				ThePlayer = (InventoryPlayer) Result[1];
-				Internal = (IInventory) Result[3];
-				if ((Boolean)Result[0] != true)
-				{
-					playerHasAllItems = false;
-					break;
-				}
-				SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
-				if(SlotIndex != -1) {
-					DecItemStackPlayer(ThePlayer, Internal, SlotIndex, recipeIngredients.get(i).StackSize, UpdateWorld); //ThePlayer.decrStackSize(SlotIndex, recipeIngredients.get(i).StackSize);
-				}
-				
-			}
+		int recipeIndex = ForcedIndex;
+		
+		if (recipeIndex == -1) {
+			recipeIndex = ContainerClevercraft.getRecipeIngredients(TheItem);
+			if (recipeIndex == -1)
+				return new Object[] {false, ThePlayer, SlotCount, Internal};
 		}
+		
+		boolean playerHasAllItems = false;
+		
+		while (recipeIndex > -1)
+		{
+			boolean playerHasAllItemsForThis = true;
+			ArrayList<ItemDetail> recipeIngredients = (ArrayList<ItemDetail>) Zeldo.ValidRecipes.get(recipeIndex);
+			
+			
+			for (int i=0; i<recipeIngredients.size(); i++)
+			{
+				if (recipeIngredients.get(i) == null)
+					continue;
+				if (recipeIngredients.get(i).equalsForceIgnore(Item2))
+					return new Object[] {false, ThePlayerBefore, SlotCount, Internal}; //Look into this effecting player in some recipes
+				int SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
+				if (SlotIndex > -1)
+				{
+					DecItemStackPlayer(ThePlayer, Internal, SlotIndex, recipeIngredients.get(i).StackSize, UpdateWorld); //ThePlayer.decrStackSize(SlotIndex, recipeIngredients.get(i).StackSize);
+				} else {
+					Object[] Result = canPlayerCraft(ThePlayer, Internal, recipeIngredients.get(i), Level+1, UpdateWorld, recipeIngredients.get(i), TheItem, -1);
+					ThePlayer = (InventoryPlayer) Result[1];
+					Internal = (IInventory) Result[3];
+					if ((Boolean)Result[0] != true)
+					{
+						playerHasAllItemsForThis = false;
+						break;
+					}
+					SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
+					if(SlotIndex != -1) {
+						DecItemStackPlayer(ThePlayer, Internal, SlotIndex, recipeIngredients.get(i).StackSize, UpdateWorld); //ThePlayer.decrStackSize(SlotIndex, recipeIngredients.get(i).StackSize);
+					}
+					
+				}
+			}
+			
+			if (playerHasAllItemsForThis == true)
+			{
+				playerHasAllItems = true;
+				break;
+			} else
+			{
+				//Reset the items to before trying this recipe
+				ThePlayer.copyInventory(ThePlayerBefore);
+				Internal = InternalBefore.getCopy();
+			}
+			if (ForcedIndex != -1)
+				break;
+			recipeIndex = ContainerClevercraft.getRecipeIngredients(TheItem, recipeIndex+1);
+		}
+		
 		
 		if (playerHasAllItems)
 		{
@@ -197,7 +230,10 @@ public class Zeldo {
 		ValidOutput = new ArrayList();
 		//Get a list of the recipes in my form
 		for(int i = 0; i < CraftingManager.getInstance().getRecipeList().size(); i++) {
+			
 			ItemStack[] recipeIngredients = ContainerClevercraft.getRecipeIngredientsOLD((IRecipe)CraftingManager.getInstance().getRecipeList().get(i));
+
+			
 			if (recipeIngredients != null) {
 				ArrayList Temp = new ArrayList();
 				for (int a=0; a<recipeIngredients.length; a++)
@@ -207,8 +243,10 @@ public class Zeldo {
 					else
 					{
 						if (recipeIngredients[a].itemID == 17)
-							recipeIngredients[a].setItemDamage(-1);
-						Temp.add(new ItemDetail(recipeIngredients[a].itemID, recipeIngredients[a].getItemDamage(), 1, (IRecipe)CraftingManager.getInstance().getRecipeList().get(i)));
+							Temp.add(new ItemDetail(recipeIngredients[a].itemID, -1, 1, (IRecipe)CraftingManager.getInstance().getRecipeList().get(i)));
+						else
+							Temp.add(new ItemDetail(recipeIngredients[a].itemID, recipeIngredients[a].getItemDamage(), 1, (IRecipe)CraftingManager.getInstance().getRecipeList().get(i)));
+						
 					}
 				}
 				ValidRecipes.add(Temp);
