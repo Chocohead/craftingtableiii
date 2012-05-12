@@ -1,16 +1,17 @@
 package net.minecraft.src;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import lukeperkin.craftingtableii.BlockClevercraft;
 import lukeperkin.craftingtableii.ContainerClevercraft;
-import lukeperkin.craftingtableii.ItemDetail;
 import lukeperkin.craftingtableii.Proxy;
 import lukeperkin.craftingtableii.TileEntityCraftingTableII;
 import lukeperkin.craftingtableii.Zeldo;
@@ -38,6 +39,10 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	public static int SyncWaitTime = 2; //MS to wait before force syncing
 	public static boolean ShowTimings = false;
 	
+	public static String UpdateURL = "http://dl.dropbox.com/u/73217561/craftingtableIII.txt";
+	public static String Version = "Beta1.5";
+	public static String NewVersion = null;
+	
 	private static mod_CraftingTableIII clevercraftInstance;
 	private static ContainerClevercraft containerClevercraft;
 	
@@ -54,7 +59,64 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	public static boolean EnableSound = true;
 	public static boolean EnableDoor = true;
 	
+	
+	@Override
+	public void renderInvBlock(RenderBlocks renderblocks, Block block, int i, int j)
+    {
+		if(block.getRenderType() == craftingTableModelID) {
+			Tessellator tessellator = Tessellator.instance;
+			block.setBlockBoundsForItemRender();
+            GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
+            tessellator.startDrawingQuads();
+            tessellator.setNormal(0.0F, -1F, 0.0F);
+            renderblocks.renderBottomFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(0, i));
+            tessellator.draw();
+            tessellator.startDrawingQuads();
+            tessellator.setNormal(0.0F, 1.0F, 0.0F);
+            renderblocks.renderTopFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(1, i));
+            tessellator.draw();
+            tessellator.startDrawingQuads();
+            tessellator.setNormal(0.0F, 0.0F, -1F);
+            renderblocks.renderEastFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(2, i));
+            tessellator.draw();
+            tessellator.startDrawingQuads();
+            tessellator.setNormal(0.0F, 0.0F, 1.0F);
+            renderblocks.renderWestFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(3, i));
+            tessellator.draw();
+            tessellator.startDrawingQuads();
+            tessellator.setNormal(-1F, 0.0F, 0.0F);
+            renderblocks.renderNorthFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(4, i));
+            tessellator.draw();
+            tessellator.startDrawingQuads();
+            tessellator.setNormal(1.0F, 0.0F, 0.0F);
+            renderblocks.renderSouthFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(5, i));
+            tessellator.draw();
+            GL11.glTranslatef(0.5F, 0.5F, 0.5F);
+		}
+    }
+	
+	@Override
+	public boolean onTickInGame(float var1, Minecraft var2)
+    {
+        if (NewVersion == null)
+        	CheckForUpdates();
+        if (!Version.equalsIgnoreCase(NewVersion))
+			Proxy.SendMsg("[CraftingTableIII] There's a new version out! (" + NewVersion + ")");
+		else
+			System.out.println("[CraftingTableIII] Up to date!");
+        return false;
+    }
+	
+	
 	public mod_CraftingTableIII() {
+		
+		CheckForUpdates();
+        if (!Version.equalsIgnoreCase(NewVersion))
+        	System.out.println("[CraftingTableIII]Theres a new version out! (" + NewVersion + ")");
+		else
+			System.out.println("[CraftingTableIII] Up to date!");
+        
+        ModLoader.setInGameHook(this, true, true);
 		Proxy.TextSetup(texturePath);
 		
 		config = new Configuration(new File(new File(Proxy.getMcDir(), "/config/"), "CraftingTableIII.cfg"));
@@ -102,6 +164,25 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 		
 	}
 	
+	
+	
+	public static void CheckForUpdates() {
+		URL oracle;
+		try {
+			oracle = new URL(UpdateURL);
+			BufferedReader in = new BufferedReader(
+					new InputStreamReader(oracle.openStream()));
+
+			String inputLine;
+			inputLine = in.readLine();
+			in.close();
+			NewVersion = inputLine;
+		} catch (Exception e) {
+			System.out.println("There was an error checking for updates...");
+		}
+        
+	}
+
 	public static mod_CraftingTableIII getInstance()
 	{
 		return clevercraftInstance;
@@ -124,41 +205,6 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	{
 		blockCraftingTableIII = new BlockClevercraft(blockIDCraftingTableIII);
 	}
-	
-	@Override
-	public void renderInvBlock(RenderBlocks renderblocks, Block block, int i, int j)
-    {
-		if(block.getRenderType() == craftingTableModelID) {
-			Tessellator tessellator = Tessellator.instance;
-			block.setBlockBoundsForItemRender();
-            GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
-            tessellator.startDrawingQuads();
-            tessellator.setNormal(0.0F, -1F, 0.0F);
-            renderblocks.renderBottomFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(0, i));
-            tessellator.draw();
-            tessellator.startDrawingQuads();
-            tessellator.setNormal(0.0F, 1.0F, 0.0F);
-            renderblocks.renderTopFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(1, i));
-            tessellator.draw();
-            tessellator.startDrawingQuads();
-            tessellator.setNormal(0.0F, 0.0F, -1F);
-            renderblocks.renderEastFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(2, i));
-            tessellator.draw();
-            tessellator.startDrawingQuads();
-            tessellator.setNormal(0.0F, 0.0F, 1.0F);
-            renderblocks.renderWestFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(3, i));
-            tessellator.draw();
-            tessellator.startDrawingQuads();
-            tessellator.setNormal(-1F, 0.0F, 0.0F);
-            renderblocks.renderNorthFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(4, i));
-            tessellator.draw();
-            tessellator.startDrawingQuads();
-            tessellator.setNormal(1.0F, 0.0F, 0.0F);
-            renderblocks.renderSouthFace(block, 0.0D, 0.0D, 0.0D, block.getBlockTextureFromSideAndMetadata(5, i));
-            tessellator.draw();
-            GL11.glTranslatef(0.5F, 0.5F, 0.5F);
-		}
-    }
 	
 	public static void addLastRecipeCrafted(IRecipe recipe) {
 		//Check if recipe is already in list.
@@ -184,7 +230,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 
 	@Override
 	public String getVersion() {
-		return "(Beta1.4, MC1.2.5)";
+		return "(" + Version + ", MC1.2.5)";
 	}
 
 
@@ -195,7 +241,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 			if (Proxy.IsClient())
 				return Proxy.getGui(player, (TileEntityCraftingTableII)world.getBlockTileEntity(x, y, z));
 			else
-				return new ContainerClevercraft(player.inventory, (TileEntityCraftingTableII)world.getBlockTileEntity(x, y, z));
+				return new ContainerClevercraft(player, (TileEntityCraftingTableII)world.getBlockTileEntity(x, y, z));
 		}
 		return null;
 	}

@@ -38,11 +38,11 @@ public class ContainerClevercraft extends Container {
     public TileEntityCraftingTableII theTile;
     public float ScrollValue = 0.0F;
 	
-	public ContainerClevercraft(InventoryPlayer inventoryplayer, TileEntityCraftingTableII tile)
+	public ContainerClevercraft(EntityPlayer aPlayer, TileEntityCraftingTableII tile)
 	{
 		worldObj = tile.worldObj;
 		theTile = tile;
-		thePlayer = inventoryplayer.player;
+		thePlayer = aPlayer;
 		craftMatrix = new InventoryCrafting(this, 3, 3);
         craftableRecipes = new InventoryCraftingTableII(1000);
         recipeList = Collections.unmodifiableList( CraftingManager.getInstance().getRecipeList() );
@@ -66,13 +66,13 @@ public class ContainerClevercraft extends Container {
         {
             for(int i1 = 0; i1 < 9; i1++)
             {
-                addSlot(new Slot(inventoryplayer, i1 + j * 9 + 9, 8 + i1 * 18, 152 + j * 18));
+                addSlot(new Slot(thePlayer.inventory, i1 + j * 9 + 9, 8 + i1 * 18, 152 + j * 18));
             }
         }
         
         for(int i3 = 0; i3 < 9; i3++)
         {
-            addSlot(new Slot(inventoryplayer, i3, 8 + i3 * 18, 211));
+            addSlot(new Slot(thePlayer.inventory, i3, 8 + i3 * 18, 211));
         }
         
         
@@ -148,7 +148,6 @@ public class ContainerClevercraft extends Container {
 	// Get a list of ingredient required to craft the recipe item.
 	public static int getRecipeIngredients(ItemDetail theItem, int offset)
 	{
-		//System.out.println("getRecipe: " + theItem.ItemID + "@" + theItem.ItemDamage);
 		if (Zeldo.ValidOutput.size() <= offset)
 			return -1;
 		for (int i=offset; i<Zeldo.ValidOutput.size(); i++)
@@ -308,8 +307,9 @@ public class ContainerClevercraft extends Container {
 		Temp.copyInventory(thePlayer.inventory);
 		
 		InventoryPlayer inventoryPlayer = thePlayer.inventory;
-
-		Zeldo.canPlayerCraft(inventoryPlayer, Internal, new ItemDetail(irecipe.getRecipeOutput()), 0, true, null, null, RecipeIndex);
+		Object[] iTemp = Zeldo.canPlayerCraft(inventoryPlayer, Internal, new ItemDetail(irecipe.getRecipeOutput()), 0, true, null, null, RecipeIndex);
+		Internal.theInventory = ((TileEntityCraftingTableII)iTemp[3]).theInventory;
+		thePlayer.inventory.copyInventory((InventoryPlayer) iTemp[1]) ;
 		
 		//onCraftMatrixChanged(recipeOutputStack);
 		return false;
@@ -347,7 +347,9 @@ public class ContainerClevercraft extends Container {
 				Temp.copyInventory(thePlayer.inventory);
 				if ((Boolean)Zeldo.canPlayerCraft(Temp, new ItemDetail(irecipe.getRecipeOutput()), Internal, RecipeIndex)[0])
 				{
-					Zeldo.canPlayerCraft(inventoryPlayer, Internal, new ItemDetail(irecipe.getRecipeOutput()), 0, true, null, null, RecipeIndex);
+					Object[] iTemp = Zeldo.canPlayerCraft(inventoryPlayer, Internal, new ItemDetail(irecipe.getRecipeOutput()), 0, true, null, null, RecipeIndex);
+					Internal.theInventory = ((TileEntityCraftingTableII)iTemp[3]).theInventory;
+					thePlayer.inventory.copyInventory((InventoryPlayer) iTemp[1]) ;
 				} else {
 					break;
 				}
