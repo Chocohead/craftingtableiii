@@ -1,10 +1,13 @@
 package net.minecraft.src;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.net.URL;
 
 import lukeperkin.craftingtableii.BlockClevercraft;
 import lukeperkin.craftingtableii.ContainerClevercraft;
@@ -32,6 +35,10 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	public static int SyncWaitTime = 2; //MS to wait before force syncing
 	public static boolean ShowTimings = false;
 	
+	public static String UpdateURL = "http://dl.dropbox.com/u/73217561/craftingtableIII.txt";
+	public static String Version = "Beta1.5";
+	public static String NewVersion = null;
+	
 	private static mod_CraftingTableIII clevercraftInstance;
 	private static ContainerClevercraft containerClevercraft;
 	
@@ -49,6 +56,14 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	public static boolean EnableDoor = true;
 	
 	public mod_CraftingTableIII() {
+		
+		CheckForUpdates();
+        if (!Version.equalsIgnoreCase(NewVersion))
+        	System.out.println("[CraftingTableIII]Theres a new version out! (" + NewVersion + ")");
+		else
+			System.out.println("[CraftingTableIII] Up to date!");
+        
+        ModLoader.setInGameHook(this, true, true);
 		Proxy.TextSetup(texturePath);
 		
 		config = new Configuration(new File(new File(Proxy.getMcDir(), "/config/"), "CraftingTableIII.cfg"));
@@ -96,6 +111,24 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 		
 	}
 	
+	
+	public static void CheckForUpdates() {
+		URL oracle;
+		try {
+			oracle = new URL(UpdateURL);
+			BufferedReader in = new BufferedReader(
+					new InputStreamReader(oracle.openStream()));
+
+			String inputLine;
+			inputLine = in.readLine();
+			in.close();
+			NewVersion = inputLine;
+		} catch (Exception e) {
+			System.out.println("There was an error checking for updates...");
+		}
+        
+	}
+
 	public static mod_CraftingTableIII getInstance()
 	{
 		return clevercraftInstance;
@@ -118,7 +151,6 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	{
 		blockCraftingTableIII = new BlockClevercraft(blockIDCraftingTableIII);
 	}
-
 	
 	public static void addLastRecipeCrafted(IRecipe recipe) {
 		//Check if recipe is already in list.
@@ -144,7 +176,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 
 	@Override
 	public String getVersion() {
-		return "(Beta1.4, MC1.2.5)";
+		return "(" + Version + ", MC1.2.5)";
 	}
 
 
@@ -155,7 +187,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 			if (Proxy.IsClient())
 				return Proxy.getGui(player, (TileEntityCraftingTableII)world.getBlockTileEntity(x, y, z));
 			else
-				return new ContainerClevercraft(player.inventory, (TileEntityCraftingTableII)world.getBlockTileEntity(x, y, z));
+				return new ContainerClevercraft(player, (TileEntityCraftingTableII)world.getBlockTileEntity(x, y, z));
 		}
 		return null;
 	}

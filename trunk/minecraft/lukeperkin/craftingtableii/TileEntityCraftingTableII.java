@@ -139,7 +139,6 @@ public class TileEntityCraftingTableII extends TileEntity implements IInventory 
 
 	@Override
 	public int getInventoryStackLimit() {
-
 		return 64;
 	}
 
@@ -166,7 +165,7 @@ public class TileEntityCraftingTableII extends TileEntity implements IInventory 
 	public void closeChest() {}
 	public int getFreeSlot()
 	{
-		for (int i=0; i < this.getSizeInventory(); i++)
+		for (int i=0; i < this.getSizeInventory()-1; i++)
 		{
 			if (getStackInSlot(i) == null)
 				return i;
@@ -175,7 +174,7 @@ public class TileEntityCraftingTableII extends TileEntity implements IInventory 
 	}
 	public int FindStack(ItemStack aStack)
 	{
-		for (int i=0; i < this.getSizeInventory(); i++)
+		for (int i=0; i < this.getSizeInventory()-1; i++)
 		{
 			if (getStackInSlot(i) != null)
 				if (getStackInSlot(i).itemID == aStack.itemID)

@@ -18,7 +18,7 @@ public class GuiClevercraft extends GuiContainer {
     
 	public GuiClevercraft(EntityPlayer entityplayer, TileEntityCraftingTableII tile)
     {
-        super( new ContainerClevercraft(entityplayer.inventory, tile) );
+        super( new ContainerClevercraft(entityplayer, tile) );
         field_35312_g = 0.0F;
         field_35313_h = false;
         allowUserInput = true;

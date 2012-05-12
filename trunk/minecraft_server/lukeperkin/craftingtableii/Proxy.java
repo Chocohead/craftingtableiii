@@ -22,7 +22,7 @@ public class Proxy {
 	}
 	public static void SendMsg(String Text)
 	{
-
+		System.out.println(Text);
 	}
 	public static Object getGui(EntityPlayer player, TileEntityCraftingTableII tile) {
 		return null;

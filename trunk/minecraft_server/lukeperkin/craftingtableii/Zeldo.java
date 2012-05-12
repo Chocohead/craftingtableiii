@@ -14,7 +14,7 @@ import net.minecraft.src.ModLoader;
 import net.minecraft.src.forge.ForgeHooks;
 
 public class Zeldo {
-	public static int MaxLevel = 10;
+	public static int MaxLevel = 20;
 	public static ArrayList ValidRecipes;
 	public static ArrayList<ItemDetail> ValidOutput; 
 	public static boolean RecipesInit = false;
@@ -28,11 +28,7 @@ public class Zeldo {
 			ItemStack CurItem = ((IRecipe)CraftingManager.getInstance().getRecipeList().get(i)).getRecipeOutput();
 			if (TestItems(CurItem,item))
 			{
-				//if (!BlackList.contains(CurItem.itemID + "@" + CurItem.getItemDamage()))
-					//System.out.println(CurItem.getItemNameandInformation().get(0) + " @@ " + CurItem.stackSize);
 					return (IRecipe)CraftingManager.getInstance().getRecipeList().get(i);
-				//else
-				//	System.out.println("Blacklist Block " + CurItem.itemID + "@" + CurItem.getItemDamage());
 			}
 		}
 		return null;
@@ -40,7 +36,6 @@ public class Zeldo {
 	
 	public static boolean TestItems(ItemStack i1, ItemStack i2)
 	{
-		//System.out.println(i1.itemID + "@" + i1.getItemDamage() + " Test " + i2.itemID + "@" + i2.getItemDamage() + " - " + i1.getItemNameandInformation().get(0));
 		return i1.itemID == i2.itemID && (i1.getItemDamage() == i2.getItemDamage() || i1.getItemDamage() == -1 || i2.getItemDamage() == -1);
 	}
 	
@@ -89,7 +84,7 @@ public class Zeldo {
 				if (recipeIngredients.get(i) == null)
 					continue;
 				if (recipeIngredients.get(i).equalsForceIgnore(Item2))
-					return new Object[] {false, ThePlayerBefore, SlotCount, Internal}; //Look into this effecting player in some recipes
+					return new Object[] {false, ThePlayerBefore, SlotCount, InternalBefore}; //Look into this effecting player in some recipes
 				int SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
 				if (SlotIndex > -1)
 				{
@@ -130,10 +125,12 @@ public class Zeldo {
 		if (playerHasAllItems)
 		{
 			TheItem = Zeldo.ValidOutput.get(recipeIndex); //Fixes damage values and set the proper item stack size
-			if (AddItemStackPlayer(ThePlayer, Internal, TheItem.toItemStack(), UpdateWorld) == false) //ThePlayer.addItemStackToInventory(TheItem.toItemStack());
+			Object[] iTemp = AddItemStackPlayer(ThePlayer, Internal, TheItem.toItemStack(), UpdateWorld);
+			if ((Boolean)iTemp[0] == false) //ThePlayer.addItemStackToInventory(TheItem.toItemStack());
 			{
-				return new Object[] {false, ThePlayerBefore, SlotCount, Internal}; //Look into this effecting player in some recipes
+				return new Object[] {false, ThePlayerBefore, SlotCount, InternalBefore}; //Look into this effecting player in some recipes
 			}
+			Internal = (IInventory) iTemp[1];
 			if (UpdateWorld){
 				InventoryCrafting TempMatrix =GenCraftingMatrix(ContainerClevercraft.getRecipeIngredientsOLD(TheItem.iRecipe)); 
 				TheItem.toItemStack().onCrafting(ThePlayer.player.worldObj, ThePlayer.player, 1);
@@ -144,13 +141,14 @@ public class Zeldo {
 		}
 		return new Object[] {playerHasAllItems, ThePlayer, SlotCount, Internal};
 	}
-	public static boolean AddItemStackPlayer(InventoryPlayer a, IInventory Internal, ItemStack b, boolean Update)
+	public static Object[] AddItemStackPlayer(InventoryPlayer a, IInventory Internal, ItemStack b, boolean Update)
 	{
-		if (((TileEntityCraftingTableII)Internal).addItemStackToInventory(b))
+		TileEntityCraftingTableII TheInternal = (TileEntityCraftingTableII)Internal;
+		if (TheInternal.addItemStackToInventory(b.copy()))
 		{
-			return true;
+			return new Object[] {true, TheInternal};
 		} else {
-			return a.addItemStackToInventory(b);
+			return new Object[] {a.addItemStackToInventory(b.copy()), TheInternal};
 		}
 		
 	}
@@ -195,9 +193,6 @@ public class Zeldo {
 			if (Items[i] != null) {
 				Items[i].stackSize = 1;
 				Temp.setInventorySlotContents(i, Items[i]);
-				//System.out.println("Not");
-			}else {
-				//System.out.println("Null");
 			}
 		}
 		return Temp;
@@ -221,7 +216,6 @@ public class Zeldo {
 					return i+18;
 			}
 		}
-		//System.out.println("Need: " + itemstack.itemID + "@" + itemstack.getItemDamage());
 		return -1;
 	}
 	public static void InitRecipes() {
