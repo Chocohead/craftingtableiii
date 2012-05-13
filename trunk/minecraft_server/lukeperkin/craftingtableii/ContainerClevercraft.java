@@ -232,7 +232,41 @@ public class ContainerClevercraft extends Container {
             }
         }
 	}
-	
+	public ItemStack transferStackInSlot(int par1)
+    {
+        ItemStack var2 = null;
+        Slot var3 = (Slot)this.inventorySlots.get(par1);
+
+        if (var3 != null && var3.getHasStack())
+        {
+            ItemStack var4 = var3.getStack();
+            var2 = var4.copy();
+
+            if (par1 < 58 && par1 > 39)
+            {
+                if (!this.mergeItemStack(var4, 58, 94, true))
+                {
+                    return null;
+                }
+            }
+            else if (par1 > 57)
+            	if (!this.mergeItemStack(var4, 40, 58, false))
+	            {
+	                return null;
+	            }
+
+            if (var4.stackSize == 0)
+            {
+                var3.putStack((ItemStack)null);
+            }
+            else
+            {
+                var3.onSlotChanged();
+            }
+        }
+
+        return var2;
+    }
 	public ItemStack slotClick(int slotIndex, int mouseButton, boolean shiftIsDown, EntityPlayer entityplayer)
     {
 		if(slotIndex != -999 
@@ -274,6 +308,7 @@ public class ContainerClevercraft extends Container {
 		}
 		
 		if(shiftIsDown) {
+			transferStackInSlot(slotIndex);
 			populateSlotsWithRecipes();
 			updateVisibleSlots(ScrollValue);
 			return null;

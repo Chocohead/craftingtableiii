@@ -38,9 +38,10 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	public static int craftingTableModelID;
 	public static int SyncWaitTime = 2; //MS to wait before force syncing
 	public static boolean ShowTimings = false;
+	public static boolean CheckForUpdates = true;
 	
 	public static String UpdateURL = "http://dl.dropbox.com/u/73217561/craftingtableIII.txt";
-	public static String Version = "Beta1.5";
+	public static String Version = "Beta1.6";
 	public static String NewVersion = null;
 	
 	private static mod_CraftingTableIII clevercraftInstance;
@@ -98,23 +99,30 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	@Override
 	public boolean onTickInGame(float var1, Minecraft var2)
     {
-        if (NewVersion == null)
-        	CheckForUpdates();
-        if (!Version.equalsIgnoreCase(NewVersion))
-			Proxy.SendMsg("[CraftingTableIII] There's a new version out! (" + NewVersion + ")");
-		else
-			System.out.println("[CraftingTableIII] Up to date!");
+		if (CheckForUpdates)
+		{
+	        if (NewVersion == null)
+	        	CheckForUpdates();
+	        if (!Version.equalsIgnoreCase(NewVersion))
+				Proxy.SendMsg("[CraftingTableIII] There's a new version out! (" + NewVersion + ")");
+			else
+				System.out.println("[CraftingTableIII] Up to date!");
+		}
         return false;
     }
 	
 	
 	public mod_CraftingTableIII() {
 		
-		CheckForUpdates();
-        if (!Version.equalsIgnoreCase(NewVersion))
-        	System.out.println("[CraftingTableIII]Theres a new version out! (" + NewVersion + ")");
-		else
-			System.out.println("[CraftingTableIII] Up to date!");
+		if (CheckForUpdates)
+		{
+			CheckForUpdates();
+	        if (!Version.equalsIgnoreCase(NewVersion))
+	        	System.out.println("[CraftingTableIII]Theres a new version out! (" + NewVersion + ")");
+			else
+				System.out.println("[CraftingTableIII] Up to date!");
+		}
+		
         
         ModLoader.setInGameHook(this, true, true);
 		Proxy.TextSetup(texturePath);
@@ -128,6 +136,10 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	    Property temp = config.getOrCreateBooleanProperty("ShowTimings", "general", this.ShowTimings);
 	    temp.comment = "Set to true if you are lagging and Zeldo wants your Timings";
 	    this.ShowTimings = Boolean.parseBoolean(temp.value);
+	    
+	    temp = config.getOrCreateBooleanProperty("CheckForUpdates", "general", this.CheckForUpdates);
+	    temp.comment = "Keep on true unless you don't want the newest versions";
+	    this.CheckForUpdates = Boolean.parseBoolean(temp.value);
 	    
 	    temp = config.getOrCreateIntProperty("SyncWaitTime", "general", this.SyncWaitTime);
 	    temp.comment = "Usually can be left at 2. Only raise if you have to click after opening CT3 on a server. RAISE ONLY BY 1 EVERY TIME";
