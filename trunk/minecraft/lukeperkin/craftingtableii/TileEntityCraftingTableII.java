@@ -156,7 +156,8 @@ public class TileEntityCraftingTableII extends TileEntity implements IInventory 
 	}
 
 	@Override
-	public void onInventoryChanged() {}
+	public void onInventoryChanged() {
+	}
 
 	@Override
 	public void openChest() {}

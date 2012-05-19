@@ -1,9 +1,12 @@
 package lukeperkin.craftingtableii;
 
+import java.util.ArrayList;
+
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.GuiContainer;
+import net.minecraft.src.IRecipe;
 import net.minecraft.src.Slot;
-import net.minecraft.src.World;
+import net.minecraft.src.mod_CraftingTableIII;
 
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -30,7 +33,8 @@ public class GuiClevercraft extends GuiContainer {
 	
 	public void updateContainer()
 	{
-		((ContainerClevercraft)inventorySlots).populateSlotsWithRecipes();
+		//((ContainerClevercraft)inventorySlots).populateSlotsWithRecipes();
+		((ContainerClevercraft)inventorySlots).StartTimer();
 	}
 	
 	public void initGui()
@@ -43,7 +47,8 @@ public class GuiClevercraft extends GuiContainer {
 	@Override
 	protected void handleMouseClick(Slot slot, int i, int j, boolean flag)
     {
-		super.handleMouseClick(slot, i, j, flag);
+		if (slot.slotNumber > 3)
+			super.handleMouseClick(slot, i, j, flag);
         //inventorySlots.slotClick(i, j, flag, mc.thePlayer);
     }
 
@@ -80,6 +85,44 @@ public class GuiClevercraft extends GuiContainer {
             }
             ((ContainerClevercraft)inventorySlots).updateVisibleSlots(field_35312_g);
         }
+        
+        for (int a = 0; a < ((ContainerClevercraft)inventorySlots).inventory.getSizeInventory(); a++)
+        {
+        	if ((Slot)this.inventorySlots.inventorySlots.get(a) instanceof SlotClevercraft)
+        	{
+        		SlotClevercraft theSlot = (SlotClevercraft) this.inventorySlots.inventorySlots.get(a);
+
+        		if (theSlot.myIndex > -1 && getIsMouseOverSlot(theSlot, i, j))
+        		{
+        			for (int b=0; b<9; b++)
+        			{
+        				((ContainerClevercraft)inventorySlots).recipeItems.setInventorySlotContents(b, null);
+        			}
+        			ArrayList<ItemDetail> theRecipe = Zeldo.ValidRecipes.get(theSlot.myIndex);
+        			int Counter = 0;
+        			for (int b=0; b<theRecipe.size(); b++)
+        			{
+        				if (mod_CraftingTableIII.RecipeType == 1)
+        				{
+	        				if (theRecipe.get(b) != null)
+	        					((ContainerClevercraft)inventorySlots).recipeItems.setInventorySlotContents(b, theRecipe.get(b).toItemStack());
+	        				else
+	        					((ContainerClevercraft)inventorySlots).recipeItems.setInventorySlotContents(b, null);
+        				} else if (mod_CraftingTableIII.RecipeType == 0)
+        				{
+	        				if (theRecipe.get(b) != null)
+	        				{
+	        					((ContainerClevercraft)inventorySlots).recipeItems.setInventorySlotContents(Counter, theRecipe.get(b).toItemStack());
+	        					Counter++;
+	        				}
+        				}
+        			}
+        			break; // Exit the loop, no need to waste cycles checking the rest
+        		}
+        	}
+           
+        }
+        
         super.drawScreen(i, j, f);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glDisable(2896 /*GL_LIGHTING*/);

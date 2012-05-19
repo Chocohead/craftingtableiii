@@ -1,14 +1,14 @@
 package lukeperkin.craftingtableii;
 
 import java.io.File;
+import java.util.Timer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.src.EntityPlayer;
-import net.minecraft.src.InventoryPlayer;
 import net.minecraft.src.ModLoader;
 import net.minecraft.src.NetworkManager;
 import net.minecraft.src.Packet;
-import net.minecraft.src.World;
+import net.minecraft.src.mod_CraftingTableIII;
 import net.minecraft.src.forge.MinecraftForgeClient;
 
 public class Proxy {
@@ -56,5 +56,6 @@ public class Proxy {
 	{
 		return Minecraft.getMinecraftDir();
 	}
+	public static boolean SendContainerUpdate(EntityPlayer player) { return false; }
 
 }
