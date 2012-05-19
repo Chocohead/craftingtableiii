@@ -44,7 +44,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	
 	public static String UpdateURL = "http://dl.dropbox.com/u/73217561/craftingtableIII.txt";
 	public static String UpdateTextURL = "http://dl.dropbox.com/u/73217561/craftingtableIIIChange.txt";
-	public static String Version = "Beta1.7";
+	public static String Version = "Beta1.8";
 	public static String NewVersion = null;
 	public static String UpdateText = "";
 	

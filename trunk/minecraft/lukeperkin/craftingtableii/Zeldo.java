@@ -78,13 +78,15 @@ public class Zeldo {
 			boolean playerHasAllItemsForThis = true;
 			ArrayList<ItemDetail> recipeIngredients = (ArrayList<ItemDetail>) Zeldo.ValidRecipes.get(recipeIndex);
 			
-			
 			for (int i=0; i<recipeIngredients.size(); i++)
 			{
 				if (recipeIngredients.get(i) == null)
 					continue;
+				if (recipeIngredients.get(i).equalsForceIgnore(Item1))
+					return new Object[] {false, ThePlayerBefore, SlotCount, InternalBefore};
 				if (recipeIngredients.get(i).equalsForceIgnore(Item2))
 					return new Object[] {false, ThePlayerBefore, SlotCount, InternalBefore};
+				
 				int SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
 				if (SlotIndex > -1)
 				{

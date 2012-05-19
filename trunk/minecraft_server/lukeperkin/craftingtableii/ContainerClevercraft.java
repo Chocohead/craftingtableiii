@@ -59,7 +59,7 @@ public class ContainerClevercraft extends Container {
         {
         	for(int i = 0; i < 9; i++)
             {
-                addSlot(new SlotIntercept(theTile, i + (a*9), 8 + i * 18, 112 + (18*a), this));
+                addSlot(new Slot(theTile, i + (a*9), 8 + i * 18, 112 + (18*a)));
             }
         }
 
@@ -67,13 +67,13 @@ public class ContainerClevercraft extends Container {
         {
             for(int i1 = 0; i1 < 9; i1++)
             {
-                addSlot(new SlotIntercept(thePlayer.inventory, i1 + j * 9 + 9, 8 + i1 * 18, 152 + j * 18, this));
+                addSlot(new Slot(thePlayer.inventory, i1 + j * 9 + 9, 8 + i1 * 18, 152 + j * 18));
             }
         }
         
         for(int i3 = 0; i3 < 9; i3++)
         {
-            addSlot(new SlotIntercept(thePlayer.inventory, i3, 8 + i3 * 18, 211, this));
+            addSlot(new Slot(thePlayer.inventory, i3, 8 + i3 * 18, 211));
         }
         
         
@@ -103,12 +103,15 @@ public class ContainerClevercraft extends Container {
         }
         
         
-        	populateSlotsWithRecipes();
+        	
         
         
         if(Proxy.IsClient() && Proxy.isMutiplayer()) {
         	timer = new Timer();
         	timer.schedule(new RemindTask(), mod_CraftingTableIII.SyncWaitTime);
+        } else if (Proxy.IsClient())
+        {
+        	populateSlotsWithRecipes();
         }
 
 	}

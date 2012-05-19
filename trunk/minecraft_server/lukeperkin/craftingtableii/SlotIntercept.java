@@ -1,6 +1,7 @@
 package lukeperkin.craftingtableii;
 
 import net.minecraft.src.IInventory;
+import net.minecraft.src.ItemStack;
 import net.minecraft.src.Slot;
 
 public class SlotIntercept extends Slot {
@@ -9,11 +10,10 @@ public class SlotIntercept extends Slot {
 		super(par1iInventory, par2, par3, par4);
 		theCont = cont;
 	}
-	
 	@Override
-	public void onSlotChanged()
-    {
-        super.onSlotChanged();
-    }
+	 public boolean isItemValid(ItemStack par1ItemStack)
+	    {
+	        return false;
+	    }
 
 }

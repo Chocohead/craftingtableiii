@@ -85,6 +85,8 @@ public class Zeldo {
 					continue;
 				if (recipeIngredients.get(i).equalsForceIgnore(Item2))
 					return new Object[] {false, ThePlayerBefore, SlotCount, InternalBefore};
+				if (recipeIngredients.get(i).equalsForceIgnore(TheItem))
+					return new Object[] {false, ThePlayerBefore, SlotCount, InternalBefore};
 				int SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
 				if (SlotIndex > -1)
 				{
