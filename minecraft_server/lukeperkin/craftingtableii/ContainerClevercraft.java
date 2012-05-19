@@ -10,6 +10,7 @@ import java.util.TimerTask;
 import net.minecraft.src.Container;
 import net.minecraft.src.CraftingManager;
 import net.minecraft.src.EntityPlayer;
+import net.minecraft.src.ICrafting;
 import net.minecraft.src.IRecipe;
 import net.minecraft.src.InventoryBasic;
 import net.minecraft.src.InventoryCrafting;
@@ -25,8 +26,8 @@ import net.minecraft.src.forge.ForgeHooks;
 
 public class ContainerClevercraft extends Container {
 	
-	private static InventoryBasic inventory = new InventoryBasic("tmp", 8*5);
-	private static IRecipe[] favouriteRecipes = new IRecipe[8];
+	public InventoryBasic inventory = new InventoryBasic("tmp", 8*5);
+	public InventoryBasic recipeItems = new InventoryBasic("tmp2", 9);
 	
 	public InventoryCrafting craftMatrix;
     public InventoryCraftingTableII craftableRecipes;
@@ -51,14 +52,14 @@ public class ContainerClevercraft extends Container {
         {
             for(int j3 = 0; j3 < 8; j3++)
             {
-            	addSlot(new SlotClevercraft(thePlayer, inventory, craftMatrix, j3 + l2 * 8, 8 + j3 * 18, 18 + l2 * 18));
+            	addSlot(new SlotClevercraft(thePlayer, inventory, craftMatrix, j3 + l2 * 8, 8 + j3 * 18, 18 + l2 * 18, this));
             }
         }
 		for(int a = 0; a < 2; a++)
         {
         	for(int i = 0; i < 9; i++)
             {
-                addSlot(new Slot(theTile, i + (a*9), 8 + i * 18, 112 + (18*a)));
+                addSlot(new SlotIntercept(theTile, i + (a*9), 8 + i * 18, 112 + (18*a), this));
             }
         }
 
@@ -66,13 +67,39 @@ public class ContainerClevercraft extends Container {
         {
             for(int i1 = 0; i1 < 9; i1++)
             {
-                addSlot(new Slot(thePlayer.inventory, i1 + j * 9 + 9, 8 + i1 * 18, 152 + j * 18));
+                addSlot(new SlotIntercept(thePlayer.inventory, i1 + j * 9 + 9, 8 + i1 * 18, 152 + j * 18, this));
             }
         }
         
         for(int i3 = 0; i3 < 9; i3++)
         {
-            addSlot(new Slot(thePlayer.inventory, i3, 8 + i3 * 18, 211));
+            addSlot(new SlotIntercept(thePlayer.inventory, i3, 8 + i3 * 18, 211, this));
+        }
+        
+        
+        if (mod_CraftingTableIII.RecipeType == 0)
+        {
+        	addSlot(new SlotIntercept(recipeItems, 0, -18, 34, this));
+        	addSlot(new SlotIntercept(recipeItems, 1, -18, 52, this));
+        	addSlot(new SlotIntercept(recipeItems, 2, -18, 70, this));
+        	addSlot(new SlotIntercept(recipeItems, 3, -18, 88, this));
+        	addSlot(new SlotIntercept(recipeItems, 4, -18, 106, this));
+        	addSlot(new SlotIntercept(recipeItems, 5, -18, 124, this));
+        	addSlot(new SlotIntercept(recipeItems, 6, -18, 142, this));
+        	addSlot(new SlotIntercept(recipeItems, 7, -18, 160, this));
+        	addSlot(new SlotIntercept(recipeItems, 8, -18, 178, this));
+        	
+        } else if (mod_CraftingTableIII.RecipeType == 1)
+        {
+        	addSlot(new SlotIntercept(recipeItems, 2, -18, 34, this));
+        	addSlot(new SlotIntercept(recipeItems, 5, -18, 52, this));
+        	addSlot(new SlotIntercept(recipeItems, 8, -18, 70, this));
+        	addSlot(new SlotIntercept(recipeItems, 1, -36, 34, this));
+        	addSlot(new SlotIntercept(recipeItems, 4, -36, 52, this));
+        	addSlot(new SlotIntercept(recipeItems, 7, -36, 70, this));
+        	addSlot(new SlotIntercept(recipeItems, 0, -54, 34, this));
+        	addSlot(new SlotIntercept(recipeItems, 3, -54, 52, this));
+        	addSlot(new SlotIntercept(recipeItems, 6, -54, 70, this));
         }
         
         
@@ -93,38 +120,34 @@ public class ContainerClevercraft extends Container {
 	}
 	
 	
-	static InventoryBasic getInventory()
+	public InventoryBasic getInventory()
 	{
 		return inventory;
 	}
 	public void populateSlotsWithRecipes()
 	{
 		Zeldo.InitRecipes();
-		long StartTime = new Date().getTime();
-		craftableRecipes.clearRecipes();
-		recipeList = Collections.unmodifiableList(recipeList);
-		InventoryPlayer Temp = new InventoryPlayer( thePlayer );
+		if (Proxy.IsClient()) {
+			long StartTime = new Date().getTime();
+			craftableRecipes.clearRecipes();
+			recipeList = Collections.unmodifiableList(recipeList);
+			InventoryPlayer Temp = new InventoryPlayer( thePlayer );
+	
+			for(int i = 0; i < Zeldo.ValidOutput.size(); i++) { // Zeldo.ValidOutput.size()
+				Temp.copyInventory(thePlayer.inventory);
+				//System.out.println("RecipeCheck: " + i + "/" + Zeldo.ValidOutput.size() + " - " + Zeldo.ValidOutput.get(i).ItemID + "@" + Zeldo.ValidOutput.get(i).ItemDamage);
+				if ((Boolean)Zeldo.canPlayerCraft(Temp, (ItemDetail)Zeldo.ValidOutput.get(i), theTile, i)[0])
+				{
+					craftableRecipes.addRecipe(((ItemDetail)Zeldo.ValidOutput.get(i)).iRecipe, i);
+				}
+			}		
 
-		for(int i = 0; i < Zeldo.ValidOutput.size(); i++) { // Zeldo.ValidOutput.size()
-			Temp.copyInventory(thePlayer.inventory);
-			//System.out.println("RecipeCheck: " + i + "/" + Zeldo.ValidOutput.size() + " - " + Zeldo.ValidOutput.get(i).ItemID + "@" + Zeldo.ValidOutput.get(i).ItemDamage);
-			if ((Boolean)Zeldo.canPlayerCraft(Temp, (ItemDetail)Zeldo.ValidOutput.get(i), theTile, i)[0])
-			{
-				craftableRecipes.addRecipe(((ItemDetail)Zeldo.ValidOutput.get(i)).iRecipe, i);
-			}
-		}		
-		
-		if (!Proxy.IsClient())
-		{
-			//Proxy.SendPacketTo(thePlayer, mod_CraftingTableIII.getInstance().SendUpdatePacket());
+			if (mod_CraftingTableIII.ShowTimings)
+				System.out.println("Calculation Time: " + (new Date().getTime() - StartTime));
 		}
-		if (mod_CraftingTableIII.ShowTimings)
-			System.out.println("Calculation Time: " + (new Date().getTime() - StartTime));
 	}
 	
-	
-	
-	
+
 	
 	
 	// Check InventorPlayer contains the ItemStack.
@@ -151,13 +174,10 @@ public class ContainerClevercraft extends Container {
 		if (Zeldo.ValidOutput.size() <= offset)
 			return -1;
 		for (int i=offset; i<Zeldo.ValidOutput.size(); i++)
+			if (Zeldo.ValidOutput.get(i) != null && theItem != null)
 			if (Zeldo.ValidOutput.get(i).equals(theItem))
-			{
-				//System.out.println("getRecipeF: " + i);
 				return i;
-			}
-				
-		//System.out.println("getRecipeF: null");
+
 		return -1;
 	}
 	
@@ -422,16 +442,6 @@ public class ContainerClevercraft extends Container {
         }
 	}
 	
-	private static void addFavouriteRecipe(IRecipe recipe)
-	{
-		for(int i = 7; i > 0; i--) {
-			favouriteRecipes[i] = favouriteRecipes[i-1];
-			if(favouriteRecipes[i] == recipe)
-				favouriteRecipes[i] = null;
-		}
-		favouriteRecipes[0] = recipe;
-	}
-	
 	@Override
 	public boolean canInteractWith(EntityPlayer entityplayer) {
 		return true;
@@ -439,5 +449,29 @@ public class ContainerClevercraft extends Container {
 	public boolean isUsableByPlayer(EntityPlayer entityplayer) {
 		return true;
 	}
+	
+	public boolean UpdateInventory()
+	{
+		for (int var1 = 0; var1 < this.inventorySlots.size(); ++var1)
+        {
+            ItemStack var2 = ((Slot)this.inventorySlots.get(var1)).getStack();
+            ItemStack var3 = (ItemStack)this.inventoryItemStacks.get(var1);
 
+            if (!ItemStack.areItemStacksEqual(var3, var2))
+            {
+                var3 = var2 == null ? null : var2.copy();
+                this.inventoryItemStacks.set(var1, var3);
+
+                for (int var4 = 0; var4 < this.crafters.size(); ++var4)
+                {
+                    ((ICrafting)this.crafters.get(var4)).updateCraftingInventorySlot(this, var1, var3);
+                }
+            }
+        }
+		return true;
+	}
+	public void StartTimer() {
+		timer = new Timer();
+    	timer.schedule(new RemindTask(), mod_CraftingTableIII.SyncWaitTime);
+	}
 }

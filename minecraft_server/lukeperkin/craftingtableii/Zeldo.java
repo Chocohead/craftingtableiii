@@ -2,6 +2,7 @@ package lukeperkin.craftingtableii;
 
 import java.util.ArrayList;
 
+import net.minecraft.src.Block;
 import net.minecraft.src.CraftingManager;
 import net.minecraft.src.IInventory;
 import net.minecraft.src.IRecipe;
@@ -15,7 +16,7 @@ import net.minecraft.src.forge.ForgeHooks;
 
 public class Zeldo {
 	public static int MaxLevel = 20;
-	public static ArrayList ValidRecipes;
+	public static ArrayList<ArrayList<ItemDetail>> ValidRecipes;
 	public static ArrayList<ItemDetail> ValidOutput; 
 	public static boolean RecipesInit = false;
 	public static IRecipe getCraftingRecipe(ItemStack item)
@@ -52,7 +53,6 @@ public class Zeldo {
 	 */
 	public static Object[] canPlayerCraft(InventoryPlayer ThePlayer, IInventory Internal, ItemDetail TheItem, int Level, boolean UpdateWorld, ItemDetail Item1, ItemDetail Item2, int ForcedIndex)
 	{
-		//ArrayList<ItemDetail> recipeIngredients = ContainerClevercraft.getRecipeIngredients(TheItem);
 		int SlotCount = 0;
 		
 		if (Level > MaxLevel)
@@ -84,7 +84,7 @@ public class Zeldo {
 				if (recipeIngredients.get(i) == null)
 					continue;
 				if (recipeIngredients.get(i).equalsForceIgnore(Item2))
-					return new Object[] {false, ThePlayerBefore, SlotCount, InternalBefore}; //Look into this effecting player in some recipes
+					return new Object[] {false, ThePlayerBefore, SlotCount, InternalBefore};
 				int SlotIndex = getFirstInventoryPlayerSlotWithItemStack(ThePlayer, Internal, recipeIngredients.get(i).toItemStack());
 				if (SlotIndex > -1)
 				{
@@ -143,21 +143,28 @@ public class Zeldo {
 	}
 	public static Object[] AddItemStackPlayer(InventoryPlayer a, IInventory Internal, ItemStack b, boolean Update)
 	{
-		TileEntityCraftingTableII TheInternal = (TileEntityCraftingTableII)Internal;
-		if (TheInternal.addItemStackToInventory(b.copy()))
+		if (!Update || (Proxy.IsClient() && !Proxy.isMutiplayer()) || !Proxy.IsClient())
 		{
-			return new Object[] {true, TheInternal};
-		} else {
-			return new Object[] {a.addItemStackToInventory(b.copy()), TheInternal};
+			TileEntityCraftingTableII TheInternal = (TileEntityCraftingTableII)Internal;
+			if (TheInternal.addItemStackToInventory(b.copy()))
+			{
+				return new Object[] {true, TheInternal};
+			} else {
+				return new Object[] {a.addItemStackToInventory(b.copy()), TheInternal};
+			}
 		}
+		return new Object[] {true, Internal};
 		
 	}
 	public static void DecItemStackPlayer(InventoryPlayer a, IInventory Internal, int Slot, int Amount, boolean Update)
 	{
-		if (Slot < 18)
-			Internal.decrStackSize(Slot, Amount);
-		else
-			a.decrStackSize(Slot-18, Amount);
+		if (!Update || (Proxy.IsClient() && !Proxy.isMutiplayer()) || !Proxy.IsClient())
+		{
+			if (Slot < 18)
+				Internal.decrStackSize(Slot, Amount);
+			else
+				a.decrStackSize(Slot-18, Amount);
+		}
 	}
 	public static void HandleCraftingMaxtrix(InventoryCrafting CraftingMatrix, InventoryPlayer thePlayer)
 	{
@@ -236,7 +243,9 @@ public class Zeldo {
 						Temp.add(null);
 					else
 					{
-						if (recipeIngredients[a].itemID == 17)
+						if (recipeIngredients[a].itemID == Block.wood.blockID)
+							Temp.add(new ItemDetail(recipeIngredients[a].itemID, -1, 1, (IRecipe)CraftingManager.getInstance().getRecipeList().get(i)));
+						else if (recipeIngredients[a].itemID == Block.planks.blockID)
 							Temp.add(new ItemDetail(recipeIngredients[a].itemID, -1, 1, (IRecipe)CraftingManager.getInstance().getRecipeList().get(i)));
 						else
 							Temp.add(new ItemDetail(recipeIngredients[a].itemID, recipeIngredients[a].getItemDamage(), 1, (IRecipe)CraftingManager.getInstance().getRecipeList().get(i)));
@@ -249,5 +258,32 @@ public class Zeldo {
 			}
 		}
 		
+	}
+	public static int FindRecipe(ArrayList<ItemDetail> TheIngrediants, ItemDetail Output)
+	{
+		int RecipeIndex = ContainerClevercraft.getRecipeIngredients(Output);
+		while (RecipeIndex > -1)
+		{
+			ArrayList<ItemDetail> recipeIngredients = (ArrayList<ItemDetail>) Zeldo.ValidRecipes.get(RecipeIndex);
+			if (recipeIngredients.size() != TheIngrediants.size())
+			{
+				RecipeIndex = ContainerClevercraft.getRecipeIngredients(Output, RecipeIndex+1);
+				continue; //Not the recipe...
+			}
+			boolean Valid = true;
+			for (int i=0; i<recipeIngredients.size(); i++)
+			{
+				if (recipeIngredients.get(i) != null)
+					if (!recipeIngredients.get(i).equalsForceIgnore(TheIngrediants.get(i)))
+					{
+						Valid = false;
+						break;
+					}
+			}
+			if (Valid)
+				return RecipeIndex;
+			RecipeIndex = ContainerClevercraft.getRecipeIngredients(Output, RecipeIndex+1);
+		}
+		return -1;
 	}
 }

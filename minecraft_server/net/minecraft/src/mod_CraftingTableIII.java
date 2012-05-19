@@ -8,9 +8,11 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
 
 import lukeperkin.craftingtableii.BlockClevercraft;
 import lukeperkin.craftingtableii.ContainerClevercraft;
+import lukeperkin.craftingtableii.ItemDetail;
 import lukeperkin.craftingtableii.Proxy;
 import lukeperkin.craftingtableii.TileEntityCraftingTableII;
 import lukeperkin.craftingtableii.Zeldo;
@@ -37,8 +39,10 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	public static boolean CheckForUpdates = true;
 	
 	public static String UpdateURL = "http://dl.dropbox.com/u/73217561/craftingtableIII.txt";
-	public static String Version = "Beta1.6";
+	public static String UpdateTextURL = "http://dl.dropbox.com/u/73217561/craftingtableIIIChange.txt";
+	public static String Version = "Beta1.7";
 	public static String NewVersion = null;
+	public static String UpdateText = "";
 	
 	private static mod_CraftingTableIII clevercraftInstance;
 	private static ContainerClevercraft containerClevercraft;
@@ -56,6 +60,11 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 	public static boolean EnableSound = true;
 	public static boolean EnableDoor = true;
 	
+	public static int RecipeType = 0; //Used to display the recipe to the person, 0 = Line, 1 = Standard, 2+ = Off
+	
+	
+	
+	
 	
 	public mod_CraftingTableIII() {
 		
@@ -63,7 +72,10 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 		{
 			CheckForUpdates();
 	        if (!Version.equalsIgnoreCase(NewVersion))
-	        	System.out.println("[CraftingTableIII]Theres a new version out! (" + NewVersion + ")");
+	        {
+	        	System.out.println("[CraftingTableIII] There's a new version out! (" + NewVersion + ")");
+	            System.out.println("[CraftingTableIII] " + UpdateText);
+	        }
 			else
 				System.out.println("[CraftingTableIII] Up to date!");
 		}
@@ -134,6 +146,13 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 			inputLine = in.readLine();
 			in.close();
 			NewVersion = inputLine;
+			
+			oracle = new URL(UpdateTextURL);
+			in = new BufferedReader(new InputStreamReader(oracle.openStream()));
+
+			inputLine = in.readLine();
+			in.close();
+			UpdateText = inputLine;
 		} catch (Exception e) {
 			System.out.println("There was an error checking for updates...");
 		}
@@ -218,17 +237,48 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 			if (PacketID == kPacketTypeSingleCraftingRequest && !Proxy.IsClient())
 			{
 				ItemStack toMake = new ItemStack(dataStream.readInt(), dataStream.readInt(), dataStream.readInt());
-				int RecipeIndex = dataStream.readInt();
+				int RecipeLength = dataStream.readInt();
 				IRecipe RecipeToMake = Zeldo.getCraftingRecipe(toMake);
-				ContainerClevercraft.onRequestSingleRecipeOutput(Proxy.getPlayer(network), RecipeToMake, (TileEntityCraftingTableII)(Proxy.getPlayer(network).worldObj).getBlockTileEntity(dataStream.readInt(), dataStream.readInt(), dataStream.readInt()), RecipeIndex);
+				TileEntityCraftingTableII theTile = (TileEntityCraftingTableII)(Proxy.getPlayer(network).worldObj).getBlockTileEntity(dataStream.readInt(), dataStream.readInt(), dataStream.readInt());
+				
+				ArrayList<ItemDetail> Temp = new ArrayList();
+				for (int i=0; i<RecipeLength; i++)
+				{
+					Temp.add(new ItemDetail(dataStream.readInt(),dataStream.readInt(),dataStream.readInt(),null));
+				}
+				int RecipeIndex = Zeldo.FindRecipe(Temp, new ItemDetail(toMake));
+				if (RecipeIndex > -1) {
+					ContainerClevercraft.onRequestSingleRecipeOutput(Proxy.getPlayer(network), RecipeToMake, theTile, RecipeIndex);
+				}
+
+				if (Proxy.SendContainerUpdate(Proxy.getPlayer(network)))
+				{
+					Proxy.SendPacketTo(Proxy.getPlayer(network), SendUpdatePacket());
+				}
 			}
 			
 			if (PacketID == kPacketTypeMaximumCraftingRequest && !Proxy.IsClient())
 			{
 				ItemStack toMake = new ItemStack(dataStream.readInt(), dataStream.readInt(), dataStream.readInt());
-				int RecipeIndex = dataStream.readInt();
+				int RecipeLength = dataStream.readInt();
 				IRecipe RecipeToMake = Zeldo.getCraftingRecipe(toMake);
-				ContainerClevercraft.onRequestMaximumRecipeOutput(Proxy.getPlayer(network), RecipeToMake, (TileEntityCraftingTableII)(Proxy.getPlayer(network).worldObj).getBlockTileEntity(dataStream.readInt(), dataStream.readInt(), dataStream.readInt()), RecipeIndex);
+				TileEntityCraftingTableII theTile = (TileEntityCraftingTableII)(Proxy.getPlayer(network).worldObj).getBlockTileEntity(dataStream.readInt(), dataStream.readInt(), dataStream.readInt());
+				
+				ArrayList Temp = new ArrayList();
+				for (int i=0; i<RecipeLength; i++)
+				{
+					Temp.add(new ItemDetail(dataStream.readInt(),dataStream.readInt(),dataStream.readInt(),null));
+				}
+				int RecipeIndex = Zeldo.FindRecipe(Temp, new ItemDetail(toMake));
+				if (RecipeIndex > -1) {
+					ContainerClevercraft.onRequestMaximumRecipeOutput(Proxy.getPlayer(network), RecipeToMake, theTile, RecipeIndex);
+				} 
+
+				if (Proxy.SendContainerUpdate(Proxy.getPlayer(network)))
+				{
+					Proxy.SendPacketTo(Proxy.getPlayer(network), SendUpdatePacket());
+				}
+				
 			}
 			if (PacketID == kPacketTypeUpdateItems && Proxy.IsClient())
 			{
@@ -247,27 +297,68 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		DataOutputStream data = new DataOutputStream(bytes);
 		try {
-			if (Max)
-				data.writeInt(kPacketTypeMaximumCraftingRequest);
-			else
-				data.writeInt(kPacketTypeSingleCraftingRequest);
 			
-			data.writeInt(theItem.itemID);
-			data.writeInt(theItem.stackSize);
-			data.writeInt(theItem.getItemDamage());
-			data.writeInt(RecipeIndex);
-			data.writeInt(xCoord);
-			data.writeInt(yCoord);
-			data.writeInt(zCoord);
-			
-			Packet250CustomPayload packet = new Packet250CustomPayload();
-            packet.channel = ChannelName;
-            packet.data = bytes.toByteArray();
-            packet.length = packet.data.length;
-
-            //
-            Proxy.SendPacket(packet);
-            
+			ArrayList<ItemDetail> recipeIngredients = (ArrayList<ItemDetail>) Zeldo.ValidRecipes.get(RecipeIndex);
+			if (recipeIngredients != null) {
+				if (Max)
+					data.writeInt(kPacketTypeMaximumCraftingRequest);
+				else
+					data.writeInt(kPacketTypeSingleCraftingRequest);
+				
+				data.writeInt(theItem.itemID);
+				data.writeInt(theItem.stackSize);
+				data.writeInt(theItem.getItemDamage());
+				data.writeInt(recipeIngredients.size());
+				data.writeInt(xCoord);
+				data.writeInt(yCoord);
+				data.writeInt(zCoord);
+				
+				
+				
+	
+				if (recipeIngredients != null) {
+					for (int a=0; a<recipeIngredients.size(); a++)
+					{
+						if (recipeIngredients.get(a) == null)
+						{
+							data.writeInt(-1);
+							data.writeInt(-1);
+							data.writeInt(-1);
+						}
+						else
+						{
+							if (recipeIngredients.get(a).ItemID == 17)
+							{
+								data.writeInt(recipeIngredients.get(a).ItemID);
+								data.writeInt(-1);
+								data.writeInt(1);
+							}
+							else
+							{
+								data.writeInt(recipeIngredients.get(a).ItemID);
+								data.writeInt(recipeIngredients.get(a).ItemDamage);
+								data.writeInt(1);
+							}						
+						}
+					}
+				}
+				
+				
+				Packet250CustomPayload packet = new Packet250CustomPayload();
+	            packet.channel = ChannelName;
+	            packet.data = bytes.toByteArray();
+	            packet.length = packet.data.length;
+	
+	            //
+	            Proxy.SendPacket(packet);
+			} else {
+//				data.writeInt(kPacketTypeUpdateItems);
+//				Packet250CustomPayload packet = new Packet250CustomPayload();
+//	            packet.channel = ChannelName;
+//	            packet.data = bytes.toByteArray();
+//	            packet.length = packet.data.length;
+//				 Proxy.SendPacket(packet);
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -292,7 +383,7 @@ public class mod_CraftingTableIII extends NetworkMod implements IGuiHandler, ICo
 		
 	}
 
-	public Packet SendUpdatePacket() {
+	public static Packet SendUpdatePacket() {
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		DataOutputStream data = new DataOutputStream(bytes);
 		try {

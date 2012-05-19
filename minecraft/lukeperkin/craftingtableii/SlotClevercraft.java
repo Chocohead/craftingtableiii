@@ -20,11 +20,13 @@ public class SlotClevercraft extends Slot {
 	public IInventory craftMatrix;
 	private IRecipe irecipe;
 	public int myIndex;
-	public SlotClevercraft(EntityPlayer entityplayer, IInventory craftableRecipes, IInventory matrix, int i, int j, int k)
+	public ContainerClevercraft theCont;
+	public SlotClevercraft(EntityPlayer entityplayer, IInventory craftableRecipes, IInventory matrix, int i, int j, int k, ContainerClevercraft cont)
     {
         super(craftableRecipes, i, j, k);
         thePlayer = entityplayer;
         craftMatrix = matrix;
+        theCont = cont;
     }
 	
 	public void setIRecipe(IRecipe theIRecipe, int theIndex)
@@ -88,4 +90,5 @@ public class SlotClevercraft extends Slot {
             thePlayer.addStat(AchievementList.bookcase, 1);
         }
     }
+
 }
