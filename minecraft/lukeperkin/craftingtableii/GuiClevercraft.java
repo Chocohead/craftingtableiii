@@ -47,8 +47,9 @@ public class GuiClevercraft extends GuiContainer {
 	@Override
 	protected void handleMouseClick(Slot slot, int i, int j, boolean flag)
     {
-		if (slot.slotNumber > 3)
-			super.handleMouseClick(slot, i, j, flag);
+		if (slot != null)
+			if (slot.slotNumber < 94)
+				super.handleMouseClick(slot, i, j, flag);
         //inventorySlots.slotClick(i, j, flag, mc.thePlayer);
     }
 
@@ -86,6 +87,11 @@ public class GuiClevercraft extends GuiContainer {
             ((ContainerClevercraft)inventorySlots).updateVisibleSlots(field_35312_g);
         }
         
+        for (int b=0; b<9; b++)
+		{
+			((ContainerClevercraft)inventorySlots).recipeItems.setInventorySlotContents(b, null);
+		}
+        
         for (int a = 0; a < ((ContainerClevercraft)inventorySlots).inventory.getSizeInventory(); a++)
         {
         	if ((Slot)this.inventorySlots.inventorySlots.get(a) instanceof SlotClevercraft)
@@ -94,10 +100,6 @@ public class GuiClevercraft extends GuiContainer {
 
         		if (theSlot.myIndex > -1 && getIsMouseOverSlot(theSlot, i, j))
         		{
-        			for (int b=0; b<9; b++)
-        			{
-        				((ContainerClevercraft)inventorySlots).recipeItems.setInventorySlotContents(b, null);
-        			}
         			ArrayList<ItemDetail> theRecipe = Zeldo.ValidRecipes.get(theSlot.myIndex);
         			int Counter = 0;
         			for (int b=0; b<theRecipe.size(); b++)
