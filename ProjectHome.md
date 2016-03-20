@@ -1,0 +1,1 @@
+Updates CraftingTable to 1.2.5 and adds new features
